@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-# Import both routers
-from app.routes import admin, about, bikes, include
-from app.models import BikeModel
+from app.database import engine, Base # 🔹 Import engine and Base
+from app.routes import admin, about, bikes, include, meta
+# Import all models here so Base knows about them
+from app.models import BikeModel, ContentModel, AboutModel, IncludeModel 
 
 app = FastAPI(title="ARP Motors API")
+
+# 🔹 Add this line: It creates tables if they don't exist
+Base.metadata.create_all(bind=engine)
 
 # Setup CORS
 app.add_middleware(
@@ -25,6 +29,7 @@ app.include_router(admin.router)
 app.include_router(about.router)
 app.include_router(bikes.router)
 app.include_router(include.router)
+app.include_router(meta.router)
 
 @app.get("/main")
 def root():

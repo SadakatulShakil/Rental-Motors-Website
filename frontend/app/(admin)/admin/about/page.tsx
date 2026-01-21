@@ -1,15 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
+
 export default function AdminAboutPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
-  // 🔹 Use a single state object to keep things synced
-  const [formData, setFormData] = useState({
-    title: "",
-    subtitle: "",
+  // 🔹 Separated into Meta (Universal) and Content (Specific)
+  const [metaData, setMetaData] = useState({
+    header_title: "",
+    header_description: "",
+    header_image: "",
+    page_title: "",
+    page_subtitle: ""
+  })
+
+  const [contentData, setContentData] = useState({
     description: "",
     hero_image: ""
   })
@@ -17,17 +24,21 @@ export default function AdminAboutPage() {
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
   useEffect(() => {
-    const fetchAbout = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:8000/admin/about", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        const data = await res.json()
-        setFormData({
-          title: data.title || "",
-          subtitle: data.subtitle || "",
-          description: data.description || "",
-          hero_image: data.hero_image || ""
+        // Fetch both Meta and About Content
+        const [metaRes, contentRes] = await Promise.all([
+          fetch("http://localhost:8000/admin/meta/about", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:8000/admin/about", { headers: { Authorization: `Bearer ${token}` } })
+        ])
+        
+        const meta = await metaRes.json()
+        const content = await contentRes.json()
+
+        setMetaData(meta)
+        setContentData({
+          description: content.description || "",
+          hero_image: content.hero_image || ""
         })
       } catch (err) {
         console.error("Fetch failed:", err)
@@ -35,14 +46,10 @@ export default function AdminAboutPage() {
         setLoading(false)
       }
     }
-    fetchAbout()
+    fetchData()
   }, [token])
 
-  // 🔹 Handle Image Upload
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const handleImageUpload = async (file: File, target: 'header' | 'hero') => {
     setUploading(true)
     const data = new FormData()
     data.append("image", file)
@@ -55,9 +62,10 @@ export default function AdminAboutPage() {
       })
       const result = await res.json()
       
-      // Update the hero_image in our main state
-      setFormData(prev => ({ ...prev, hero_image: result.url }))
-      alert("Image uploaded! Don't forget to Save Changes.")
+      if (target === 'header') setMetaData(prev => ({ ...prev, header_image: result.url }))
+      else setContentData(prev => ({ ...prev, hero_image: result.url }))
+      
+      alert("Image uploaded successfully!")
     } catch (err) {
       alert("Image upload failed")
     } finally {
@@ -66,85 +74,97 @@ export default function AdminAboutPage() {
   }
 
   const handleSave = async () => {
-    setSaving(true)
+    setSaving(true);
     try {
-      const res = await fetch("http://localhost:8000/admin/about", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData), // Sends everything including the new URL
-      })
-      
-      if (res.ok) {
-        alert("PostgreSQL Database Updated Successfully!")
+      const [metaRes, contentRes] = await Promise.all([
+        // 1. Save Meta Data
+        fetch("http://localhost:8000/admin/meta/about", {
+          method: "PUT",
+          headers: { 
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify(metaData),
+        }),
+        // 2. Save Content Data
+        fetch("http://localhost:8000/admin/about", {
+          method: "PUT",
+          headers: { 
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify(contentData),
+        })
+      ]);
+  
+      // Check if BOTH responses are actually 200-299 OK
+      if (metaRes.ok && contentRes.ok) {
+        alert("All sections updated successfully!");
+      } else {
+        // If one failed, log which one
+        const errorMeta = !metaRes.ok ? "Meta update failed" : "";
+        const errorContent = !contentRes.ok ? "Content update failed" : "";
+        console.error(errorMeta, errorContent);
+        alert(`Partial update: ${errorMeta} ${errorContent}`);
       }
     } catch (err) {
-      alert("Update failed")
+      console.error("Network error:", err);
+      alert("Update failed: Check your connection or server logs.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
-
+  };
   if (loading) return <div className="p-10 text-black">Loading...</div>
 
   return (
-    <main className="p-8 bg-gray-100 min-h-screen text-black">
-      <h2 className="text-3xl font-bold mb-8">Edit About Section</h2>
+    <main className="p-8 bg-gray-100 min-h-screen text-black space-y-8">
+      <h2 className="text-3xl font-bold">Edit About Page</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column: Image Preview */}
-        <div className="bg-white p-6 rounded shadow col-span-1">
-          <h3 className="text-xl font-semibold mb-4">Hero Image</h3>
-          <div className="relative aspect-video bg-gray-200 rounded overflow-hidden mb-4">
-            {formData.hero_image ? (
-              <img src={formData.hero_image} alt="Preview" className="object-cover w-full h-full" />
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
-            )}
-          </div>
-          <input type="file" accept="image/*" onChange={handleImageFileChange} className="text-sm" />
-          {uploading && <p className="text-blue-500 mt-2 text-sm">Uploading...</p>}
+      {/* SECTION 1: UNIVERSAL HEADER */}
+      <div className="bg-white p-6 rounded shadow grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h3 className="text-xl font-semibold mb-4 text-red-600">1. Header Section</h3>
+            <label className="block text-sm font-medium mb-1">Header Image</label>
+            <input type="file" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'header')} className="mb-4" />
+            
+            <label className="block text-sm font-medium mb-1">Header Title</label>
+            <input type="text" value={metaData.header_title} onChange={e => setMetaData({...metaData, header_title: e.target.value})} className="w-full border p-2 mb-4" />
+            
+            <label className="block text-sm font-medium mb-1">Header Description</label>
+            <textarea value={metaData.header_description} onChange={e => setMetaData({...metaData, header_description: e.target.value})} className="w-full border p-2" rows={3} />
         </div>
-
-        {/* Right Column: Text Content */}
-        <div className="bg-white p-6 rounded shadow col-span-2">
-          <h3 className="text-xl font-semibold mb-4">Text Content</h3>
-          
-          <label className="block mb-2 text-sm font-medium">Title</label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({...formData, title: e.target.value})}
-            className="w-full border p-3 rounded mb-4"
-          />
-
-          <label className="block mb-2 text-sm font-medium">Subtitle</label>
-          <input
-            type="text"
-            value={formData.subtitle}
-            onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
-            className="w-full border p-3 rounded mb-4"
-          />
-
-          <label className="block mb-2 text-sm font-medium">Description</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-            rows={5}
-            className="w-full border p-3 rounded mb-6"
-          />
-
-          <button
-            onClick={handleSave}
-            disabled={saving || uploading}
-            className="bg-green-600 text-white px-8 py-3 rounded font-bold hover:bg-green-700 disabled:bg-gray-400"
-          >
-            {saving ? "Saving to Database..." : "Save All Changes"}
-          </button>
+        <div className="bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+            {metaData.header_image ? <img src={metaData.header_image} alt="Header Preview" className="w-full h-full object-cover" /> : "No Header Image"}
         </div>
       </div>
+
+      {/* SECTION 2: PAGE TITLE & SUBTITLE */}
+      <div className="bg-white p-6 rounded shadow">
+         <h3 className="text-xl font-semibold mb-4 text-red-600">2. Body Titles</h3>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input placeholder="Page Title (e.g. Our Vision)" type="text" value={metaData.page_title} onChange={e => setMetaData({...metaData, page_title: e.target.value})} className="border p-2" />
+            <input placeholder="Page Subtitle" type="text" value={metaData.page_subtitle} onChange={e => setMetaData({...metaData, page_subtitle: e.target.value})} className="border p-2" />
+         </div>
+      </div>
+
+      {/* SECTION 3: MAIN CONTENT */}
+      <div className="bg-white p-6 rounded shadow grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h3 className="text-xl font-semibold mb-4 text-red-600">3. About Description & Main Image</h3>
+            <label className="block text-sm font-medium mb-1">Main Hero Image</label>
+            <input type="file" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'hero')} className="mb-4" />
+            
+            <label className="block text-sm font-medium mb-1">Full Description</label>
+            <textarea value={contentData.description} onChange={e => setContentData({...contentData, description: e.target.value})} className="w-full border p-2" rows={8} />
+        </div>
+        <div className="bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+            {contentData.hero_image ? <img src={contentData.hero_image} alt="Hero Preview" className="w-full h-full object-cover" /> : "No Hero Image"}
+        </div>
+      </div>
+
+      <button onClick={handleSave} disabled={saving || uploading} className="fixed bottom-8 right-8 bg-green-600 text-white px-10 py-4 rounded-full font-bold shadow-2xl hover:bg-green-700">
+        {saving ? "Saving All..." : "Save All Changes"}
+      </button>
     </main>
   )
 }

@@ -39,8 +39,6 @@ class BikeOut(BikeBase):
 
 # --- ABOUT SCHEMAS ---
 class AboutBase(BaseModel):
-    title: str
-    subtitle: str
     description: str
     hero_image: str
 
@@ -77,5 +75,18 @@ class PolicyCreate(PolicyBase):
 
 class PolicyOut(PolicyBase):
     id: int
+    class Config:
+        from_attributes = True
+        
+# --- PAGE META SCHEMAS ---
+class PageMetaBase(BaseModel):
+    header_image: str
+    header_title: str
+    header_description: str
+    page_title: str
+    page_subtitle: str
+
+class PageMetaOut(PageMetaBase):
+    page_key: str
     class Config:
         from_attributes = True

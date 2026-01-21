@@ -1,47 +1,74 @@
 "use client"
 import Image from "next/image";
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import BookingForm from "../components/BookingForm";
 
 export default function AboutHeader() {
   const [showForm, setShowForm] = useState(false)
-  const motorcycleOptions = ["KTM Duke 390","Yamaha R15","Honda CB500F","Royal Enfield Meteor 350", "Yamaha MT-15"]
+  const [meta, setMeta] = useState<any>(null)
   
-  return (
-    <section className="relative w-full h-[90vh]">
-      <Image
-        src="/banner2.jpeg"
-        alt="Motorcycle Hero"
-        fill
-        priority
-        className="object-cover"
-      />
+  useEffect(() => {
+    fetch("http://localhost:8000/admin/meta/about")
+      .then(res => res.json())
+      .then(data => setMeta(data))
+      .catch(err => console.error("Error fetching meta:", err))
+  }, [])
 
-      {/* 1. Changed items-center to items-start */}
-      {/* 2. Changed text-center to text-left */}
-      {/* 3. Added max-w-4xl to keep the text from stretching too far across the screen */}
-      <div className="absolute inset-0 flex flex-col justify-center items-start text-left px-8 md:px-20">
-        <div className="max-w-xl">
-            <h1 className="text-white text-5xl md:text-7xl font-bold mb-6">
-                ABOUT US
-            </h1>
+  if (!meta) return <div className="h-[90vh] bg-gray-900 animate-pulse" />
 
-            <p className="text-white md:text-l mb-8 leading-relaxed opacity-90">
-                Welcome to ARP Rental Scooter, the best bike renting company in the UK. We are also a leading scooter renting company in London, offering a wide range of two-wheelers and exceptional service for your commuting and touring needs. With our diverse fleet and customer-centric approach, we aim to provide the ultimate riding experience, ensuring your safety, convenience, and satisfaction.
-            </p>
-            
-            <div className="flex gap-4 ">
-            <button
-    onClick={() => setShowForm(true)}
-    className="bg-yellow-500 text-black w-32 h-32 rounded-full text-sm font-bold hover:bg-yellow-600 transition-all hover:scale-110 flex items-center justify-center text-center shadow-xl leading-tight border-1 border-black/10"
->
-    Book <br/> Now
-</button>
-            </div>
-        </div>
+  // Fallback Image Logic: Check if header_image exists and is a valid URL
+  const headerImg = meta.header_image && meta.header_image.startsWith('http') 
+    ? meta.header_image 
+    : "/banner2.jpeg"; // Your local public folder fallback
+
+  const motorcycleOptions = ["KTM Duke 390","Yamaha R15","Honda CB500F"]
+
+return (
+  <section className="relative w-full h-[50vh] md:h-[85vh] mt-[65px] overflow-hidden bg-slate-900">
+    {/* Background Image */}
+    <Image
+      src={headerImg}
+      alt="About Header"
+      fill
+      priority
+      unoptimized={true} 
+      className="object-cover object-center"
+    />
+
+    {/* Improved Overlay: Darker on the left for text readability */}
+    <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
+
+    <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-20">
+      <div className="max-w-2xl">
+          {/* Tagline */}
+          <p className="text-blue-400 font-bold tracking-widest uppercase text-xs md:text-sm mb-3">
+            Since 2010
+          </p>
+          
+          {/* Optimized Title Size */}
+          <h1 className="text-white text-4xl md:text-6xl font-black leading-tight uppercase mb-6">
+              {meta.header_title || "ABOUT US"}
+          </h1>
+
+          {/* Clean Description */}
+          <p className="text-slate-300 text-base md:text-lg max-w-md leading-relaxed mb-10 font-medium">
+              {meta.header_description || "Premium motorcycle rentals for the ultimate London experience."}
+          </p>
+          
+          {/* Modern Button */}
+          <button
+                onClick={() => setShowForm(true)}
+                className="group flex items-center bg-blue-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/40 active:scale-95"
+              >
+                <span>Book Your Ride</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
       </div>
-      
-      {showForm && <BookingForm motorcycleOptions={motorcycleOptions} onClose={() => setShowForm(false)} />}
-    </section>
-  );
+    </div>
+    
+    {showForm && <BookingForm motorcycleOptions={motorcycleOptions} onClose={() => setShowForm(false)} />}
+  </section>
+);
 }

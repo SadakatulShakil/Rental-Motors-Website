@@ -1,74 +1,85 @@
 "use client"
 import Image from "next/image";
-import { useState, useEffect } from "react" // 🔹 Added useEffect
+import { useState, useEffect } from "react"
 import BookingForm from "../components/BookingForm";
 
 export default function HeroSection() {
   const [showForm, setShowForm] = useState(false)
-  // 🔹 State to hold bike names dynamically
+  const [meta, setMeta] = useState<any>(null)
   const [motorcycleOptions, setMotorcycleOptions] = useState<string[]>([])
 
-  // 🔹 Fetch bike names from the backend on component mount
   useEffect(() => {
-    const fetchBikes = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:8000/admin/bikes");
-        if (res.ok) {
-          const data = await res.json();
-          // Extract only the names for the dropdown
-          const names = data.map((bike: any) => bike.name);
-          setMotorcycleOptions(names);
+        const [metaRes, bikesRes] = await Promise.all([
+          fetch("http://localhost:8000/admin/meta/bikes"),
+          fetch("http://localhost:8000/admin/bikes")
+        ]);
+        if (metaRes.ok) setMeta(await metaRes.json());
+        if (bikesRes.ok) {
+          const bikes = await bikesRes.json();
+          setMotorcycleOptions(bikes.map((b: any) => b.name));
         }
-      } catch (err) {
-        console.error("Failed to fetch bikes for HeroSection:", err);
-        // Fallback options in case the server is down
-        setMotorcycleOptions(["Standard Bike", "Premium Scooter"]);
-      }
+      } catch (err) { console.error("Hero Fetch Error:", err); }
     };
-
-    fetchBikes();
+    fetchData();
   }, []);
   
+  if (!meta) return <div className="h-[90vh] bg-slate-900 animate-pulse" />;
+
+  // Dynamic Image Logic
+  const headerImg = meta.header_image && meta.header_image.startsWith('http') 
+    ? meta.header_image 
+    : "/hero-bg.jpg";
+
   return (
-    <section className="relative w-full h-[90vh]">
+    <section className="relative w-full h-[75vh] md:h-[80vh] mt-[65px] overflow-hidden bg-slate-900">
+      {/* Background Image with Zoom Effect */}
       <Image
-        src="/hero-bg.jpg"
-        alt="Motorcycle Hero"
+        src={headerImg}
+        alt="Hero Banner"
         fill
         priority
-        unoptimized={true} // 🔹 Added for private IP compatibility
-        className="object-cover"
+        unoptimized={true}
+        className="object-cover object-center transition-transform duration-1000 hover:scale-105"
       />
+      
+      {/* Refined Gradient Overlay for better text pop */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+      <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-20">
+        <div className="max-w-2xl space-y-6">
+          {/* Blue Accent Tagline */}
+          <div className="space-y-2">
+            <span className="text-blue-500 font-bold tracking-widest uppercase text-xs md:text-sm">
+              London's Premium Rentals
+            </span>
+            <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-black leading-tight uppercase">
+              {meta.header_title || "Ride Your Dream"}
+            </h1>
+            <div className="w-24 h-1.5 bg-blue-600 rounded-full"></div>
+          </div>
 
-      <div className="absolute inset-0 flex flex-col justify-center items-start text-left px-8 md:px-20">
-        <div className="max-w-xl">
-          <h1 className="text-white text-4xl md:text-5xl font-bold mb-6">
-            Hire Motorcycle Rental in London
-          </h1>
-          <p className="text-white md:text-xl mb-8 leading-relaxed opacity-90">
-            Looking for a thrilling way to explore London? Renting a motorcycle from ARP Motors is your answer! Feel the wind as you ride through iconic streets and discover hidden gems.
+          <p className="text-slate-200 text-base md:text-lg max-w-lg leading-relaxed font-light">
+            {meta.header_description || "Experience the thrill of the open road with our elite motorcycle fleet."}
           </p>
-            
-          <div className="flex gap-4 ">
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-yellow-500 text-black w-32 h-32 rounded-full text-sm font-bold hover:bg-yellow-600 transition-all hover:scale-110 flex items-center justify-center text-center shadow-xl leading-tight border-1 border-black/10"
+          
+          {/* Modern Action Button */}
+          <div className="pt-4">
+            <button 
+              onClick={() => setShowForm(true)} 
+              className="group flex items-center bg-blue-600 text-white px-12 py-5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/40 active:scale-95"
             >
-              Book <br/> Now
+              <span className="text-lg">Book Your Ride</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-3 group-hover:translate-x-2 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </button>
           </div>
         </div>
       </div>
       
-      {/* 🔹 Passing the dynamic list to the form */}
-      {showForm && (
-        <BookingForm 
-          motorcycleOptions={motorcycleOptions} 
-          onClose={() => setShowForm(false)} 
-        />
-      )}
+      {showForm && <BookingForm motorcycleOptions={motorcycleOptions} onClose={() => setShowForm(false)} />}
     </section>
   );
 }

@@ -17,10 +17,9 @@ def get_about(db: Session = Depends(get_db)):
     about_data = db.query(About).first()
     if not about_data:
         # Create default data if the DB is empty
+        # Note: We only include description and hero_image here
         about_data = About(
-            title="About ARP Motors",
-            subtitle="Rental Service",
-            description="Explore London...",
+            description="Explore London with our premium motorcycle fleet. We provide the best service for riders.",
             hero_image="/hero-bg.jpg"
         )
         db.add(about_data)
@@ -35,8 +34,8 @@ def update_about(data: AboutUpdate, db: Session = Depends(get_db)):
         about_record = About()
         db.add(about_record)
 
-    about_record.title = data.title
-    about_record.subtitle = data.subtitle
+    # 🔹 FIXED: Removed .title and .subtitle assignments
+    # These caused the AttributeError because they aren't in AboutUpdate
     about_record.description = data.description
     about_record.hero_image = data.hero_image
     
@@ -49,8 +48,12 @@ async def upload_image(image: UploadFile = File(...)):
     os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, image.filename)
     
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
-    
-    url = f"http://localhost:8000/static/uploads/{image.filename}"
-    return {"url": url}
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+        
+        # Ensure your frontend uses this URL correctly
+        url = f"http://localhost:8000/static/uploads/{image.filename}"
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")

@@ -1,112 +1,116 @@
 "use client"
-
 import { useEffect, useState } from "react"
 
-interface Bike {
-  slug: string;
-  name: string;
-  price: string;
-  image: string;
-  cc: string;
-  fuel: string;
-  topSpeed: string;
-  description: string;
-}
-
 export default function AdminBikesPage() {
-  const [bikes, setBikes] = useState<Bike[]>([])
+  const [bikes, setBikes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  // Form State
+  // 🔹 Universal Meta State for Bikes Page
+  const [metaData, setMetaData] = useState({
+    header_title: "",
+    header_description: "",
+    header_image: "",
+    page_title: "",
+    page_subtitle: ""
+  })
+
+  // 🔹 Individual Bike Form State
   const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    cc: "",
-    fuel: "",
-    topSpeed: "",
-    description: "",
-    image: ""
+    name: "", price: "", cc: "", fuel: "", topSpeed: "", description: "", image: ""
   })
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
   useEffect(() => {
-    fetchBikes()
-  }, [])
-
-  const fetchBikes = async () => {
-    try {
-      const res = await fetch("http://localhost:8000/admin/bikes")
-      const data = await res.json()
-      setBikes(data)
-    } catch (err) {
-      console.error("Failed to fetch bikes")
-    } finally {
+    const fetchData = async () => {
+      const [metaRes, bikesRes] = await Promise.all([
+        fetch("http://localhost:8000/admin/meta/bikes"),
+        fetch("http://localhost:8000/admin/bikes")
+      ])
+      if (metaRes.ok) setMetaData(await metaRes.json())
+      if (bikesRes.ok) setBikes(await bikesRes.json())
       setLoading(false)
     }
-  }
+    fetchData()
+  }, [])
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const handleImageUpload = async (file: File, isHeader: boolean) => {
+    setUploading(true)
     const data = new FormData()
     data.append("image", file)
-
     const res = await fetch("http://localhost:8000/admin/about/upload-image", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: data,
     })
     const result = await res.json()
-    setFormData({ ...formData, image: result.url })
+    if (isHeader) setMetaData({ ...metaData, header_image: result.url })
+    else setFormData({ ...formData, image: result.url })
+    setUploading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSaveMeta = async () => {
+    await fetch("http://localhost:8000/admin/meta/bikes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(metaData),
+    })
+    alert("Bikes Page Header Updated!")
+  }
+
+  const handleAddBike = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Generate slug from name
     const slug = formData.name.toLowerCase().replace(/ /g, "-")
-    
     const res = await fetch("http://localhost:8000/admin/bikes/", {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}` 
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...formData, slug }),
     })
-
-    if (res.ok) {
-      alert("Bike added!")
-      setIsAdding(false)
-      fetchBikes()
-    }
+    if (res.ok) { fetch("http://localhost:8000/admin/bikes").then(r => r.json()).then(setBikes); setIsAdding(false); }
   }
 
-  if (loading) return <div className="p-10 text-black">Loading...</div>
+  if (loading) return <div className="p-10 text-black font-bold">Loading...</div>
 
   return (
-    <main className="p-8 bg-gray-50 min-h-screen text-black">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold">Manage Fleet</h2>
-        <button 
-          onClick={() => setIsAdding(!isAdding)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {isAdding ? "Cancel" : "Add New Bike"}
-        </button>
+    <main className="p-8 bg-gray-50 min-h-screen text-black space-y-8">
+      
+      {/* 🔹 SECTION 1: UNIVERSAL HEADER CONFIG */}
+      <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-600">
+        <h2 className="text-xl font-bold mb-4">1. Bikes Page Header & Titles</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <input placeholder="Header Title" value={metaData.header_title} onChange={e => setMetaData({...metaData, header_title: e.target.value})} className="w-full border p-2 rounded" />
+            <textarea placeholder="Header Description" value={metaData.header_description} onChange={e => setMetaData({...metaData, header_description: e.target.value})} className="w-full border p-2 rounded" rows={2} />
+            <div className="grid grid-cols-2 gap-2">
+              <input placeholder="Page Title" value={metaData.page_title} onChange={e => setMetaData({...metaData, page_title: e.target.value})} className="border p-2 rounded" />
+              <input placeholder="Page Subtitle" value={metaData.page_subtitle} onChange={e => setMetaData({...metaData, page_subtitle: e.target.value})} className="border p-2 rounded" />
+            </div>
+            <button onClick={handleSaveMeta} className="bg-blue-600 text-white px-6 py-2 rounded font-bold">Save Header Info</button>
+          </div>
+          <div className="border-2 border-dashed rounded flex flex-col items-center justify-center p-4">
+            {metaData.header_image && <img src={metaData.header_image} className="h-32 object-cover mb-2 rounded" />}
+            <input type="file" onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], true)} />
+          </div>
+        </div>
+      </div>
+
+      {/* 🔹 SECTION 2: BIKE FLEET MANAGEMENT */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">2. Manage Fleet</h2>
+        <button onClick={() => setIsAdding(!isAdding)} className="bg-black text-white px-4 py-2 rounded-lg">{isAdding ? "Cancel" : "Add New Bike"}</button>
       </div>
 
       {/* ADD BIKE FORM */}
       {isAdding && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md mb-8 grid grid-cols-2 gap-4">
+        <form onSubmit={handleAddBike} className="bg-white p-6 rounded-xl shadow-md mb-8 grid grid-cols-2 gap-4">
           <input className="border p-2 rounded" placeholder="Bike Name (e.g. KTM Duke 390)" onChange={e => setFormData({...formData, name: e.target.value})} required />
           <input className="border p-2 rounded" placeholder="Price (e.g. ৳3,500)" onChange={e => setFormData({...formData, price: e.target.value})} required />
           <input className="border p-2 rounded" placeholder="Engine (e.g. 373cc)" onChange={e => setFormData({...formData, cc: e.target.value})} />
           <input className="border p-2 rounded" placeholder="Fuel (e.g. 13.5L)" onChange={e => setFormData({...formData, fuel: e.target.value})} />
           <input className="border p-2 rounded" placeholder="Top Speed" onChange={e => setFormData({...formData, topSpeed: e.target.value})} />
-          <input type="file" className="border p-2 rounded" onChange={handleImageUpload} />
+          <input type="file" className="border p-2 rounded" onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], false)} />
           <textarea className="border p-2 rounded col-span-2" placeholder="Description" rows={3} onChange={e => setFormData({...formData, description: e.target.value})} />
           <button type="submit" className="bg-green-600 text-white py-3 rounded-lg col-span-2">Save Bike</button>
         </form>

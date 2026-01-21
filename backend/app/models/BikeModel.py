@@ -13,12 +13,3 @@ class Bike(Base):
     fuel = Column(String)
     topSpeed = Column(String)
     description = Column(Text)
-
-class About(Base):
-    __tablename__ = "about"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    subtitle = Column(String)
-    description = Column(Text)
-    hero_image = Column(String)

@@ -6,30 +6,26 @@ export default function DynamicIncludedSection() {
   const [features, setFeatures] = useState<any[]>([])
   const [policies, setPolicies] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [meta, setMeta] = useState<any>(null)
 
   // 🔹 Fetch data from PostgreSQL via FastAPI
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [featRes, polRes] = await Promise.all([
+        const [fRes, pRes, mRes] = await Promise.all([
           fetch("http://localhost:8000/admin/include/features"),
-          fetch("http://localhost:8000/admin/include/policies")
+          fetch("http://localhost:8000/admin/include/policies"),
+          fetch("http://localhost:8000/admin/meta/include") // 🔹 Fetch Meta
         ])
-        
-        if (featRes.ok) setFeatures(await featRes.json())
-        if (polRes.ok) setPolicies(await polRes.json())
-      } catch (error) {
-        console.error("Error fetching content:", error)
-      } finally {
-        setLoading(false)
-      }
+        if (fRes.ok) setFeatures(await fRes.json())
+        if (pRes.ok) setPolicies(await pRes.json())
+        if (mRes.ok) setMeta(await mRes.json())
+      } finally { setLoading(false) }
     }
     fetchData()
   }, [])
 
-  if (loading) {
-    return <div className="py-16 text-center text-black">Loading content from database...</div>
-  }
+  if (loading) return <div className="py-16 text-center">Loading...</div>
 
   // Handle case where DB is empty
   if (features.length === 0 && policies.length === 0) {
@@ -39,13 +35,13 @@ export default function DynamicIncludedSection() {
   return (
     <section className="py-4 bg-gray-100">
       {/* Features Grid */}
-          {/* Section Title & Subtitle */}
-          <div className="max-w-6xl mx-auto text-center mb-12 px-4">
-        <h2 className="text-4xl font-bold text-black mb-2">
-        What Sets Us Apart
+      <div className="max-w-6xl mx-auto text-center mb-12 px-4">
+        {/* 🔹 Dynamic Body Titles */}
+        <h2 className="text-4xl font-bold text-black mb-2 uppercase">
+          {meta?.page_title || "What Sets Us Apart"}
         </h2>
-        <h3 className="text-lg text-gray-700">
-        Discover the ultimate rental service with a diverse fleet of vehicles tailored to meet your every need.
+        <h3 className="text-lg text-gray-700 italic">
+          {meta?.page_subtitle}
         </h3>
       </div>
 

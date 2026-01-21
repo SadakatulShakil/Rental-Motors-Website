@@ -5,7 +5,5 @@ class About(Base):
     __tablename__ = "about_section"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    subtitle = Column(String)
     description = Column(Text)
     hero_image = Column(String)

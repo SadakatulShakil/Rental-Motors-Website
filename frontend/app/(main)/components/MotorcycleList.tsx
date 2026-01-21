@@ -23,40 +23,37 @@ interface Props {
 
 export default function MotorcycleList({ limit, showViewMore = false }: Props) {
   const [bikes, setBikes] = useState<Bike[]>([]) // 🔹 Dynamic bikes state
+  const [meta, setMeta] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showBooking, setShowBooking] = useState(false)
   const [selectedBike, setSelectedBike] = useState<string>("")
 
-  // 🔹 Fetch bikes from the backend
   useEffect(() => {
-    const fetchBikes = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/admin/bikes")
-        if (res.ok) {
-          const data = await res.json()
-          setBikes(data)
-        }
-      } catch (err) {
-        console.error("Failed to fetch bikes:", err)
-      } finally {
-        setLoading(false)
-      }
+    const fetchData = async () => {
+      const [bRes, mRes] = await Promise.all([
+        fetch("http://localhost:8000/admin/bikes"),
+        fetch("http://localhost:8000/admin/meta/bikes") // 🔹 Use 'bikes' key here too
+      ])
+      if (bRes.ok) setBikes(await bRes.json())
+      if (mRes.ok) setMeta(await mRes.json())
+      setLoading(false)
     }
-    fetchBikes()
+    fetchData()
   }, [])
+
+  if (loading) return <div className="py-20 text-center">Loading...</div>
 
   const bikesToShow = limit ? bikes.slice(0, limit) : bikes
 
-  if (loading) return <div className="py-20 text-center text-black">Loading Fleet...</div>
-
   return (
     <section id="motorcyclelist" className="py-16 px-4 bg-gray-100">
-      <div className="max-w-6xl mx-auto text-center mb-12 px-4">
+      <div className="max-w-6xl mx-auto text-center mb-12">
+        {/* 🔹 Dynamic Titles from Meta Table */}
         <h2 className="text-4xl font-bold text-black mb-2">
-          Choose The Best Vehicle
+          {meta?.page_title || "Choose The Best Vehicle"}
         </h2>
         <h3 className="text-lg text-gray-700">
-          Select from our premium selection of well-maintained motorcycles and scooters
+          {meta?.page_subtitle}
         </h3>
       </div>
 

@@ -1,47 +1,56 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from ..database import get_db, engine
+from ..models.AboutModel import About
+from ..schemas.AdminSchemas import AboutUpdate, AboutOut
 import shutil
 import os
 
 router = APIRouter(prefix="/admin", tags=["About"])
 
-# 🔹 1. DEFINE mock_db HERE so the functions can find it
-mock_db = {
-    "title": "About ARP Motors",
-    "subtitle": "Rental Service With A Wide Range Of Vehicles",
-    "description": "For every destination you have in mind...",
-    "hero_image": "/hero-bg.jpg"
-}
+# Create table if it doesn't exist
+About.metadata.create_all(bind=engine)
 
-class AboutData(BaseModel):
-    title: str
-    subtitle: str
-    description: str
-
-@router.get("/about")
-async def get_about():
-    # Now mock_db exists, so this won't throw a NameError
-    return mock_db
+@router.get("/about", response_model=AboutOut)
+def get_about(db: Session = Depends(get_db)):
+    # Try to get the first record
+    about_data = db.query(About).first()
+    if not about_data:
+        # Create default data if the DB is empty
+        about_data = About(
+            title="About ARP Motors",
+            subtitle="Rental Service",
+            description="Explore London...",
+            hero_image="/hero-bg.jpg"
+        )
+        db.add(about_data)
+        db.commit()
+        db.refresh(about_data)
+    return about_data
 
 @router.put("/about")
-async def update_about(data: AboutData):
-    # 🔹 2. Update the actual mock_db dictionary keys
-    mock_db["title"] = data.title
-    mock_db["subtitle"] = data.subtitle
-    mock_db["description"] = data.description
-    return {"message": "Updated successfully", "data": mock_db}
+def update_about(data: AboutUpdate, db: Session = Depends(get_db)):
+    about_record = db.query(About).first()
+    if not about_record:
+        about_record = About()
+        db.add(about_record)
+
+    about_record.title = data.title
+    about_record.subtitle = data.subtitle
+    about_record.description = data.description
+    about_record.hero_image = data.hero_image
+    
+    db.commit()
+    return {"message": "Updated successfully"}
 
 @router.post("/about/upload-image")
 async def upload_image(image: UploadFile = File(...)):
     upload_dir = "static/uploads"
-    if not os.path.exists(upload_dir):
-        os.makedirs(upload_dir)
-    
+    os.makedirs(upload_dir, exist_ok=True)
     file_path = os.path.join(upload_dir, image.filename)
     
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
     
     url = f"http://localhost:8000/static/uploads/{image.filename}"
-    
     return {"url": url}

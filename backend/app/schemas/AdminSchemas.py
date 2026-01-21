@@ -36,3 +36,46 @@ class BikeOut(BikeBase):
 
     class Config:
         from_attributes = True
+
+# --- ABOUT SCHEMAS ---
+class AboutBase(BaseModel):
+    title: str
+    subtitle: str
+    description: str
+    hero_image: str
+
+class AboutUpdate(AboutBase):
+    pass
+
+class AboutOut(AboutBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# --- FEATURE SCHEMAS ---
+class FeatureBase(BaseModel):
+    icon_name: str
+    title: str
+    subtitle: str
+
+class FeatureCreate(FeatureBase):
+    pass
+
+class FeatureOut(FeatureBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# --- POLICY SCHEMAS ---
+class PolicyBase(BaseModel):
+    title: str
+    points: str 
+    color_type: str
+
+class PolicyCreate(PolicyBase):
+    pass
+
+class PolicyOut(PolicyBase):
+    id: int
+    class Config:
+        from_attributes = True

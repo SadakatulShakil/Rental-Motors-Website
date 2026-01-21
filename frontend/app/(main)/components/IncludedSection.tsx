@@ -1,55 +1,84 @@
 "use client"
-import { FaMotorcycle, FaShieldAlt, FaCreditCard, FaAddressBook, FaAirFreshener, FaAmazon } from "react-icons/fa"
+import { useState, useEffect } from "react"
+import * as FaIcons from "react-icons/fa"
 
-const features = [
-  {
-    icon: <FaMotorcycle className="text-red-600 w-10 h-10" />,
-    title: "Wide Range of Vehicles", 
-    subtitle: "Choose from scooters, mopeds, and bikes to fit your needs."
-  },
-  {
-    icon: <FaShieldAlt className="text-red-600 w-10 h-10" />,
-    title: "Fully Insured",
-    subtitle: "Ride safely with complete insurance coverage."
-  },
-  {
-    icon: <FaCreditCard className="text-red-600 w-10 h-10" />,
-    title: "Easy Payments",
-    subtitle: "Multiple payment options for your convenience."
-  },
-  {
-    icon: <FaAddressBook className="text-red-600 w-10 h-10" />,
-    title: "Wide Range of Vehicles", 
-    subtitle: "Choose from scooters, mopeds, and bikes to fit your needs."
-  },
-  {
-    icon: <FaAirFreshener className="text-red-600 w-10 h-10" />,
-    title: "Fully Insured",
-    subtitle: "Ride safely with complete insurance coverage."
-  },
-  {
-    icon: <FaAmazon className="text-red-600 w-10 h-10" />,
-    title: "Easy Payments",
-    subtitle: "Multiple payment options for your convenience."
+export default function DynamicIncludedSection() {
+  const [features, setFeatures] = useState<any[]>([])
+  const [policies, setPolicies] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // 🔹 Fetch data from PostgreSQL via FastAPI
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [featRes, polRes] = await Promise.all([
+          fetch("http://localhost:8000/admin/include/features"),
+          fetch("http://localhost:8000/admin/include/policies")
+        ])
+        
+        if (featRes.ok) setFeatures(await featRes.json())
+        if (polRes.ok) setPolicies(await polRes.json())
+      } catch (error) {
+        console.error("Error fetching content:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return <div className="py-16 text-center text-black">Loading content from database...</div>
   }
-]
 
-export default function IncludedSection() {
+  // Handle case where DB is empty
+  if (features.length === 0 && policies.length === 0) {
+    return <div className="py-16 text-center text-gray-500">No content found. Please add features in the Admin Panel.</div>
+  }
+
   return (
-    <section id="included" className="py-16 bg-gray-100">
-      <div className="max-w-6xl mx-auto text-center mb-12 px-4">
-        <h2 className="text-4xl font-bold text-black mb-2">What Sets Us Apart</h2>
+    <section className="py-4 bg-gray-100">
+      {/* Features Grid */}
+          {/* Section Title & Subtitle */}
+          <div className="max-w-6xl mx-auto text-center mb-12 px-4">
+        <h2 className="text-4xl font-bold text-black mb-2">
+        What Sets Us Apart
+        </h2>
         <h3 className="text-lg text-gray-700">
-          Discover the ultimate rental service with a diverse fleet of vehicles tailored to meet your every need.
+        Discover the ultimate rental service with a diverse fleet of vehicles tailored to meet your every need.
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
-        {features.map((f, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition flex flex-col items-center text-center">
-            {f.icon}
-            <h3 className="font-semibold text-black text-xl mt-4 mb-2">{f.title}</h3>
-            <p className="text-gray-700">{f.subtitle}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 mb-16">
+
+        {features.map((f: any) => {
+          const IconComponent = (FaIcons as any)[f.icon_name] || FaIcons.FaMotorcycle
+          return (
+            <div key={f.id} className="bg-white p-6 rounded-lg shadow text-center flex flex-col items-center">
+              <IconComponent className="text-red-600 w-10 h-10 mb-4" />
+              <h3 className="font-bold text-xl text-black">{f.title}</h3>
+              <p className="text-gray-700">{f.subtitle}</p>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Policy Cards (Matching your uploaded image) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
+        {policies.map((p: any) => (
+          <div 
+            key={p.id} 
+            className={`${p.color_type === 'orange' ? 'bg-[#E68A45]' : 'bg-[#1A222C]'} p-10 rounded-[30px] text-white shadow-xl transition-transform hover:scale-105`}
+          >
+            <h3 className="text-2xl font-bold mb-6 text-center">{p.title}</h3>
+            <ul className="space-y-4">
+              {p.points?.split(',').map((point: string, i: number) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="mt-2 w-2 h-2 bg-white rounded-full shrink-0" />
+                  <p className="text-sm md:text-base leading-relaxed">{point.trim()}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>

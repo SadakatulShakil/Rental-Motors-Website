@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             collapsed={isCollapsed} 
           />
           <SidebarLink 
-            href="/admin/includes" 
+            href="/admin/include" 
             label="What's Included" 
             icon={<CheckCircle size={22} />} 
             collapsed={isCollapsed} 

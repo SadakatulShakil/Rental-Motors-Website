@@ -1,81 +1,72 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import AdminGuard from "../../components/AdminGuard"
-import AdminNavbar from "../../components/AdminNavBar"
-
 export default function AdminAboutPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  const [heroImage, setHeroImage] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  // 🔹 Use a single state object to keep things synced
+  const [formData, setFormData] = useState({
+    title: "",
+    subtitle: "",
+    description: "",
+    hero_image: ""
+  })
 
-  const [title, setTitle] = useState("")
-  const [subtitle, setSubtitle] = useState("")
-  const [description, setDescription] = useState("")
+  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("admin_token")
-      : null
-
-  // 🔹 Load existing about data
   useEffect(() => {
     const fetchAbout = async () => {
       try {
         const res = await fetch("http://localhost:8000/admin/about", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         })
         const data = await res.json()
-
-        setHeroImage(data.hero_image)
-        setTitle(data.title)
-        setSubtitle(data.subtitle)
-        setDescription(data.description)
+        setFormData({
+          title: data.title || "",
+          subtitle: data.subtitle || "",
+          description: data.description || "",
+          hero_image: data.hero_image || ""
+        })
       } catch (err) {
-        console.error(err)
+        console.error("Fetch failed:", err)
       } finally {
         setLoading(false)
       }
     }
-
     fetchAbout()
   }, [token])
 
-  // 🔹 Upload image instantly
-  const handleImageUpload = async () => {
-    if (!imageFile) return
+  // 🔹 Handle Image Upload
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-    const formData = new FormData()
-    formData.append("image", imageFile)
+    setUploading(true)
+    const data = new FormData()
+    data.append("image", file)
 
-    const res = await fetch(
-      "http://localhost:8000/admin/about/upload-image",
-      {
+    try {
+      const res = await fetch("http://localhost:8000/admin/about/upload-image", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }
-    )
-
-    const data = await res.json()
-    setHeroImage(data.url)
-    setImageFile(null)
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
+      })
+      const result = await res.json()
+      
+      // Update the hero_image in our main state
+      setFormData(prev => ({ ...prev, hero_image: result.url }))
+      alert("Image uploaded! Don't forget to Save Changes.")
+    } catch (err) {
+      alert("Image upload failed")
+    } finally {
+      setUploading(false)
+    }
   }
 
-  // 🔹 Save text content
-const handleSave = async () => {
-    if (!title || !subtitle || !description) {
-      alert("Please fill in all fields");
-      return;
-    }
-    
-    setSaving(true);
+  const handleSave = async () => {
+    setSaving(true)
     try {
       const res = await fetch("http://localhost:8000/admin/about", {
         method: "PUT",
@@ -83,103 +74,77 @@ const handleSave = async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title,
-          subtitle,
-          description,
-          hero_image: heroImage, // Send the uploaded image URL too
-        }),
-      });
+        body: JSON.stringify(formData), // Sends everything including the new URL
+      })
       
       if (res.ok) {
-        alert("About section updated successfully!");
+        alert("PostgreSQL Database Updated Successfully!")
       }
     } catch (err) {
-      alert("Update failed");
+      alert("Update failed")
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
-
-  if (loading) {
-    return (
-        <div className="p-10 text-black">Loading...</div>
-    )
   }
 
+  if (loading) return <div className="p-10 text-black">Loading...</div>
+
   return (
-    <main className="p-8 bg-gray-100 min-h-screen">
-    <h2 className="text-3xl font-bold text-black mb-8">
-      About Section
-    </h2>
+    <main className="p-8 bg-gray-100 min-h-screen text-black">
+      <h2 className="text-3xl font-bold mb-8">Edit About Section</h2>
 
-    {/* HERO IMAGE */}
-    <div className="bg-white p-6 rounded shadow mb-8">
-      <h3 className="text-xl font-semibold mb-4 text-black">
-        Hero Image
-      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Column: Image Preview */}
+        <div className="bg-white p-6 rounded shadow col-span-1">
+          <h3 className="text-xl font-semibold mb-4">Hero Image</h3>
+          <div className="relative aspect-video bg-gray-200 rounded overflow-hidden mb-4">
+            {formData.hero_image ? (
+              <img src={formData.hero_image} alt="Preview" className="object-cover w-full h-full" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
+            )}
+          </div>
+          <input type="file" accept="image/*" onChange={handleImageFileChange} className="text-sm" />
+          {uploading && <p className="text-blue-500 mt-2 text-sm">Uploading...</p>}
+        </div>
 
-      {heroImage && (
-        <img
-          src={heroImage}
-          alt="About Hero"
-          className="w-full max-w-lg rounded mb-4"
-        />
-      )}
+        {/* Right Column: Text Content */}
+        <div className="bg-white p-6 rounded shadow col-span-2">
+          <h3 className="text-xl font-semibold mb-4">Text Content</h3>
+          
+          <label className="block mb-2 text-sm font-medium">Title</label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            className="w-full border p-3 rounded mb-4"
+          />
 
+          <label className="block mb-2 text-sm font-medium">Subtitle</label>
+          <input
+            type="text"
+            value={formData.subtitle}
+            onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
+            className="w-full border p-3 rounded mb-4"
+          />
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-      />
+          <label className="block mb-2 text-sm font-medium">Description</label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            rows={5}
+            className="w-full border p-3 rounded mb-6"
+          />
 
-      <button
-        onClick={handleImageUpload}
-        className="ml-4 bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Upload Image
-      </button>
-    </div>
-
-    {/* TEXT CONTENT */}
-    <div className="bg-white p-6 rounded shadow">
-      <h3 className="text-xl font-semibold mb-4 text-black">
-        About Content
-      </h3>
-
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border p-3 rounded mb-4 text-black"
-      />
-
-      <input
-        type="text"
-        placeholder="Subtitle"
-        value={subtitle}
-        onChange={(e) => setSubtitle(e.target.value)}
-        className="w-full border p-3 rounded mb-4 text-black"
-      />
-
-      <textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={6}
-        className="w-full border p-3 rounded mb-6 text-black"
-      />
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700"
-      >
-        {saving ? "Saving..." : "Save Changes"}
-      </button>
-    </div>
-  </main>
+          <button
+            onClick={handleSave}
+            disabled={saving || uploading}
+            className="bg-green-600 text-white px-8 py-3 rounded font-bold hover:bg-green-700 disabled:bg-gray-400"
+          >
+            {saving ? "Saving to Database..." : "Save All Changes"}
+          </button>
+        </div>
+      </div>
+    </main>
   )
 }

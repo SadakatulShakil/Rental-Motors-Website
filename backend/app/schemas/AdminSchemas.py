@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 # --- ADMIN USER SCHEMAS (Keep these) ---
 class AdminUserCreate(BaseModel):
@@ -46,8 +46,7 @@ class GalleryCreate(GalleryBase):
 class GalleryOut(GalleryBase):
     id: int
     class Config:
-        from_attributes = True
-        
+        from_attributes = True      
         
 # --- ABOUT SCHEMAS ---
 class AboutBase(BaseModel):
@@ -100,5 +99,32 @@ class PageMetaBase(BaseModel):
 
 class PageMetaOut(PageMetaBase):
     page_key: str
+    class Config:
+        from_attributes = True
+
+# --- CONTACT INFO SCHEMAS ---
+class ContactInfoBase(BaseModel):
+    address: str
+    phone: str
+    email: str
+    latitude: float
+    longitude: float
+
+class ContactInfoOut(ContactInfoBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# --- DYNAMIC FORM FIELD SCHEMAS ---
+class ContactFieldBase(BaseModel):
+    label: str
+    field_type: str  # text, email, textarea, tel
+    is_required: bool = True
+
+class ContactFieldCreate(ContactFieldBase):
+    pass
+
+class ContactFieldOut(ContactFieldBase):
+    id: int
     class Config:
         from_attributes = True

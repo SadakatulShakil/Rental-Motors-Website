@@ -91,7 +91,7 @@ export default function AdminBikesPage() {
           </div>
           <div className="border-2 border-dashed rounded flex flex-col items-center justify-center p-4">
             {metaData.header_image && <img src={metaData.header_image} className="h-32 object-cover mb-2 rounded" />}
-            <input type="file" onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], true)} />
+            <input type="file" onChange={e => e.target.files?.[0] && handleImageUpload(e.target.files[0], true)} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full"/>
           </div>
         </div>
       </div>

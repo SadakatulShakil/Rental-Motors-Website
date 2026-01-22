@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base # 🔹 Import engine and Base
-from app.routes import admin, about, bikes, include, meta
+from app.routes import admin, about, bikes, include, meta, gallery
 # Import all models here so Base knows about them
-from app.models import BikeModel, ContentModel, AboutModel, IncludeModel 
+from app.models import BikeModel, ContentModel, AboutModel, IncludeModel, GalleryModel
 
 app = FastAPI(title="ARP Motors API")
 
@@ -30,6 +30,7 @@ app.include_router(about.router)
 app.include_router(bikes.router)
 app.include_router(include.router)
 app.include_router(meta.router)
+app.include_router(gallery.router)
 
 @app.get("/main")
 def root():

@@ -37,6 +37,18 @@ class BikeOut(BikeBase):
     class Config:
         from_attributes = True
 
+# --- GALLERY SCHEMAS ---
+class GalleryBase(BaseModel):
+    image: str
+    description: Optional[str] = None
+class GalleryCreate(GalleryBase):
+    pass
+class GalleryOut(GalleryBase):
+    id: int
+    class Config:
+        from_attributes = True
+        
+        
 # --- ABOUT SCHEMAS ---
 class AboutBase(BaseModel):
     description: str

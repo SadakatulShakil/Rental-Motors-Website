@@ -6,13 +6,25 @@ import BookingForm from "../components/BookingForm";
 export default function AboutHeader() {
   const [showForm, setShowForm] = useState(false)
   const [meta, setMeta] = useState<any>(null)
+  const [motorcycleOptions, setMotorcycleOptions] = useState<string[]>([])
+
   
   useEffect(() => {
-    fetch("http://localhost:8000/admin/meta/about")
-      .then(res => res.json())
-      .then(data => setMeta(data))
-      .catch(err => console.error("Error fetching meta:", err))
-  }, [])
+    const fetchData = async () => {
+      try {
+        const [metaRes, bikesRes] = await Promise.all([
+          fetch("http://localhost:8000/admin/meta/about"),
+          fetch("http://localhost:8000/admin/bikes")
+        ]);
+        if (metaRes.ok) setMeta(await metaRes.json());
+        if (bikesRes.ok) {
+          const bikes = await bikesRes.json();
+          setMotorcycleOptions(bikes.map((b: any) => b.name));
+        }
+      } catch (err) { console.error("Gallery Header Fetch Error:", err); }
+    };
+    fetchData();
+  }, []);
 
   if (!meta) return <div className="h-[90vh] bg-gray-900 animate-pulse" />
 
@@ -21,7 +33,6 @@ export default function AboutHeader() {
     ? meta.header_image 
     : "/banner2.jpeg"; // Your local public folder fallback
 
-  const motorcycleOptions = ["KTM Duke 390","Yamaha R15","Honda CB500F"]
 
 return (
   <section className="relative w-full h-[50vh] md:h-[85vh] mt-[65px] overflow-hidden bg-slate-900">

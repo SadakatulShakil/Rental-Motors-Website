@@ -52,7 +52,7 @@ export default function MotorcycleList({ limit, showViewMore = false }: Props) {
         <h2 className="text-4xl font-bold text-black mb-2">
           {meta?.page_title || "Choose The Best Vehicle"}
         </h2>
-        <h3 className="text-lg text-gray-700">
+        <h3 className="text-lg text-gray-700 italic">
           {meta?.page_subtitle}
         </h3>
       </div>
@@ -110,7 +110,7 @@ export default function MotorcycleList({ limit, showViewMore = false }: Props) {
         <div className="text-center mt-10">
           <Link
             href="/bikes"
-            className="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800"
+            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/20"
           >
             View More Bikes
           </Link>

@@ -42,7 +42,7 @@ export default function AboutSection() {
           <h2 className="text-4xl font-bold text-black mb-2">
             {meta.page_title || "Our Vision"}
           </h2>
-          <h3 className="text-xl text-red-600 font-medium italic">
+          <h3 className="text-lg text-gray-700 italic">
             {meta.page_subtitle}
           </h3>
         </div>

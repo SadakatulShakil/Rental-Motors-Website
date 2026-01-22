@@ -15,7 +15,7 @@ export default function Navbar() {
     { name: "What’s Included", href: "/include" },
     { name: "Gallery", href: "/gallery" },
     { name: "Contact", href: "/contact" },
-    { name: "Admin", href: "/login" },
+    { name: "Admin", href: "/login", newTab: true },
   ];
 
   return (
@@ -33,6 +33,9 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
+              // Open in new tab if newTab is true
+              target={link.newTab ? "_blank" : "_self"}
+              rel={link.newTab ? "noopener noreferrer" : ""}
               className={`relative px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
                 isActive(link.href) 
                   ? "text-blue-600 bg-blue-50" 

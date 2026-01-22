@@ -128,3 +128,15 @@ class ContactFieldOut(ContactFieldBase):
     id: int
     class Config:
         from_attributes = True
+
+# --- HERO SLIDE SCHEMAS ---
+class HeroSlideBase(BaseModel):
+    title: str
+    subtitle: Optional[str] = None
+    image_url: str
+    order: int = 0
+
+class HeroSlideOut(HeroSlideBase):
+    id: int
+    class Config:
+        from_attributes = True

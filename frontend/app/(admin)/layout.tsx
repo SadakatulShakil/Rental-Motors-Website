@@ -7,6 +7,7 @@ import AdminNavbar from "./components/AdminNavBar";
 import { 
   Menu, 
   LayoutDashboard, 
+  GalleryThumbnails,
   Info, 
   CheckCircle, 
   Bike, 
@@ -47,6 +48,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/admin" 
             label="Dashboard" 
             icon={<LayoutDashboard size={22} />} 
+            collapsed={isCollapsed} 
+          />
+          <SidebarLink 
+            href="/admin/hero" 
+            label="Banner Section" 
+            icon={<GalleryThumbnails size={22} />} 
             collapsed={isCollapsed} 
           />
           <SidebarLink 

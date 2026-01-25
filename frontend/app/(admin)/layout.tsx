@@ -13,7 +13,8 @@ import {
   Bike, 
   Image as ImageIcon, 
   Phone,
-  ChevronLeft
+  ChevronLeft,
+  ScanSearch
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -84,6 +85,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/admin/contact" 
             label="Contact Info" 
             icon={<Phone size={22} />} 
+            collapsed={isCollapsed} 
+          />
+          <SidebarLink 
+            href="/admin/footer" 
+            label="Footer Info" 
+            icon={<ScanSearch size={22} />} 
             collapsed={isCollapsed} 
           />
         </nav>

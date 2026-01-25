@@ -157,3 +157,23 @@ class HeroSlideOut(HeroSlideBase):
     id: int
     class Config:
         from_attributes = True
+        
+# --- FOOTER SETTINGS SCHEMAS ---
+class FooterSettingsBase(BaseModel):
+    site_title: str
+    logo_url: Optional[str] = None
+    slogan: Optional[str] = None
+    sub_slogan: Optional[str] = None
+    facebook: Optional[str] = None
+    twitter: Optional[str] = None
+    instagram: Optional[str] = None
+    youtube: Optional[str] = None
+
+class FooterSettingsUpdate(FooterSettingsBase):
+    pass
+
+class FooterSettingsRead(FooterSettingsBase):
+    id: int
+
+    class Config:
+        from_attributes = True

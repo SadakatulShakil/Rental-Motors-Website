@@ -15,7 +15,7 @@ export default async function BikeDetailPage({ params }: { params: Promise<{ slu
       <div className="max-w-6xl mx-auto px-6">
         {/* Back Link - Smaller & More Subtle */}
         <Link href="/bikes" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 mb-8 transition-all group">
-            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform"/> Back to Fleet
+            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform"/> Back to Vehicle
         </Link>
         
         <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">

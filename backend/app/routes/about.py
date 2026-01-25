@@ -1,10 +1,10 @@
+import os
+import shutil
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db, engine
 from ..models.AboutModel import About
 from ..schemas.AdminSchemas import AboutUpdate, AboutOut
-import shutil
-import os
 
 router = APIRouter(prefix="/admin", tags=["About"])
 

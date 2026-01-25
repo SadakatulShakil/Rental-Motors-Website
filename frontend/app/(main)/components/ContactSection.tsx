@@ -1,10 +1,12 @@
 "use client"
 import { useState, useEffect } from "react"
+import { CheckCircle, Mail, Phone, MapPin, Loader2 } from "lucide-react"
 
 export default function ContactPage() {
   const [meta, setMeta] = useState<any>(null)
   const [info, setInfo] = useState<any>(null)
   const [fields, setFields] = useState<any[]>([])
+  const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [status, setStatus] = useState({ loading: false, message: "" })
 
@@ -31,29 +33,51 @@ export default function ContactPage() {
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setStatus({ loading: true, message: "" })
+    e.preventDefault();
+    setStatus({ loading: true, message: "" });
+    
     try {
-      const res = await fetch("http://localhost:8000/contact/submit", {
+      const res = await fetch("http://localhost:8000/admin/contact/send-mail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
-      })
+      });
+  
       if (res.ok) {
-        setStatus({ loading: false, message: "Message sent successfully!" })
-        const resetForm: Record<string, string> = {}
-        fields.forEach((f: any) => resetForm[f.label] = "")
-        setFormData(resetForm)
+        setSubmitted(true);
+      } else {
+        const errorData = await res.json();
+        setStatus({ loading: false, message: errorData.detail || "Server error. Please try again." });
       }
-    } catch (err) { setStatus({ loading: false, message: "Failed to send message." }) }
+    } catch (err) { 
+      setStatus({ loading: false, message: "Failed to connect to server." }); 
+    }
+  };
+  
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl text-center max-w-lg border border-slate-100 animate-in zoom-in duration-300">
+          <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+            <CheckCircle size={48} />
+          </div>
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900">Message Sent</h2>
+          <p className="text-slate-500 mt-4 mb-10 font-medium leading-relaxed">
+            Thank you for reaching out to ARP Motors. We've received your inquiry and our team will contact you <span className="text-blue-600 font-bold underline text-nowrap tracking-tighter italic">ASAP</span> to assist you.
+          </p>
+          <button onClick={() => window.location.reload()} className="w-full bg-slate-950 text-white py-5 rounded-2xl font-black uppercase italic tracking-widest text-xs hover:bg-blue-600 transition-all active:scale-95 shadow-xl shadow-slate-200">
+            Back to Contact
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!meta || !info) return <div className="h-screen bg-white animate-pulse" />
 
   return (
-    <main className="bg-gray-100 min-h-screen">
-      {/* 🔹 2. BODY SECTION (Titles) */}
-      <section className="max-w-7xl mx-auto pt-20 px-8 text-center">
+    <main className="bg-slate-50 min-h-screen">
+           <section className="max-w-7xl mx-auto pt-20 px-8 text-center">
         <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase">
             {meta.page_title || "How Can We Help?"}
         </h2>
@@ -78,7 +102,7 @@ export default function ContactPage() {
                     required={field.is_required}
                     value={formData[field.label] || ""}
                     onChange={(e) => setFormData({...formData, [field.label]: e.target.value})}
-                    className="w-full border-2 border-slate-100 p-3 rounded-2xl focus:border-blue-500 focus:bg-white bg-slate-50 outline-none transition-all" 
+                    className="w-full text-black border-2 border-slate-100 p-3 rounded-2xl focus:border-blue-500 focus:bg-white bg-slate-50 outline-none transition-all" 
                     rows={4} 
                   />
                 ) : (

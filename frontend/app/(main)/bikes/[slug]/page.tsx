@@ -1,157 +1,142 @@
 import Image from "next/image";
-import { bikes } from "../data/bikes";
-import React from "react";
-import { CheckCircle2, Shield } from "lucide-react"; // Optional: npm install lucide-react
+import { Shield, Users, Settings, Fuel, Calendar, Palette, ArrowLeft, Zap } from "lucide-react";
+import Link from "next/link";
+import BikePriceCalculator from "../../components/BikePriceCalculator";
 import BookNowButton from "../../components/BookingNowButton";
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default async function BikeDetailPage({ params }: PageProps) {
+export default async function BikeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-
-// 🔹 Fetch dynamic data from FastAPI
-const res = await fetch(`http://localhost:8000/admin/bikes/${slug}`, {
-  cache: 'no-store' // Ensures you always get the latest data from Admin
-});
-
-if (!res.ok) {
-  return <div className="p-20 text-center font-medium text-slate-400">Bike not found</div>;
-}
-
-const bike = await res.json();
+  const res = await fetch(`http://localhost:8000/admin/bikes/${slug}`, { cache: 'no-store' });
+  if (!res.ok) return <div className="p-20 text-center font-black uppercase">Bike not found</div>;
+  const bike = await res.json();
 
   return (
-    <section className="w-full bg-white font-sans selection:bg-blue-100">
-      <div className="max-w-6xl mx-auto px-6 pt-32 pb-20">
+    <section className="bg-white text-slate-900 pb-16 pt-24">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Back Link - Smaller & More Subtle */}
+        <Link href="/bikes" className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 mb-8 transition-all group">
+            <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform"/> Back to Fleet
+        </Link>
         
- {/* TOP SECTION - Adjusted Grid to 60/40 */}
- <div className="grid lg:grid-cols-5 gap-12 items-start mb-24">
-          
-          {/* Bigger Image Column (3/5 of space) */}
-          <div className="lg:col-span-3 relative group">
-            {/* Soft decorative glow behind image */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-blue-50 rounded-[2.5rem] blur-2xl opacity-50 -z-10" />
-            
-            {/* Image Container: Aspect ratio ensures sides aren't cut off */}
-            <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-900/10 border border-slate-100 bg-slate-50 transform transition-transform duration-700 hover:scale-[1.01]">
-              <Image
-                src={bike.image}
-                alt={bike.name}
-                fill
-                unoptimized={true}
-                className="object-cover p-2 rounded-[2rem]" // Added slight padding to prevent edge cutting
-                priority
-              />
-            </div>
+        <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+          {/* Left: Product Image - Added a subtle glow and less rounding */}
+          <div className="lg:sticky lg:top-28 relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-slate-50 border border-slate-100 shadow-inner">
+            <Image src={bike.image} alt={bike.name} fill className="object-contain p-6 hover:scale-105 transition-transform duration-700" priority unoptimized />
           </div>
 
-          {/* Smaller, Tighter Details Column (2/5 of space) */}
-          <div className="lg:col-span-2 pt-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6">
-              <Shield size={14} /> Ready for rent
-            </div>
-            
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
-              {bike.name}
-            </h1>
-
-            <div className="flex items-center gap-3 mb-8">
-              <span className="text-3xl font-black text-blue-600">{bike.price}</span>
-              <span className="h-6 w-px bg-slate-200"></span>
-              <span className="text-slate-500 font-medium">Standard Rate</span>
+          {/* Right: Essential Info */}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-blue-600 text-white rounded-md text-[9px] font-black uppercase italic tracking-tighter">New Arrival</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                   <Shield size={12} className="text-green-500"/> Verified Fleet
+                </span>
+              </div>
+              <h1 className="text-5xl md:text-6xl font-black tracking-tight uppercase italic text-slate-950 leading-[0.9]">
+                {bike.name}
+              </h1>
             </div>
 
-            {/* Compact Specs Row */}
-            <div className="grid grid-cols-3 gap-2 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <div className="text-center border-r border-slate-200">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Engine</p>
-                <p className="text-slate-800 font-bold text-sm">{bike.cc}</p>
-              </div>
-              <div className="text-center border-r border-slate-200">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Fuel</p>
-                <p className="text-slate-800 font-bold text-sm">{bike.fuel}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Speed</p>
-                <p className="text-slate-800 font-bold text-sm">{bike.topSpeed}</p>
-              </div>
+            {/* Calculator - Integrated smoothly */}
+            <div className="rounded-[1.5rem] overflow-hidden shadow-sm">
+                <BikePriceCalculator bike={bike} variant="full" />
             </div>
 
-            <p className="text-slate-600 leading-relaxed text-lg mb-8">
-              {bike.description}
-            </p>
+            {/* Quick Specs - Reduced padding and text size */}
+            <div className="grid grid-cols-3 gap-3">
+              <SpecBox label="Engine" value={bike.cc} icon={<Zap size={10}/>} />
+              <SpecBox label="Fuel" value={bike.fuel} icon={<Fuel size={10}/>} />
+              <SpecBox label="Speed" value={bike.topSpeed} icon={<Settings size={10}/>} />
+            </div>
 
-            <BookNowButton bikeName={bike.name} />
+            <div className="pt-2">
+              <BookNowButton bikeName={bike.name} />
+            </div>
           </div>
         </div>
 
-        {/* INFO GRID */}
-        <div className="grid md:grid-cols-2 gap-12 mb-20">
-          <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100">
-            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-              Additional Information
-            </h2>
-            <ul className="space-y-4">
-              {["Valid driving license is mandatory.", "Original NID or Passport required.", "Helmet provided with every booking.", "Security deposit may apply."].map((text, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-600 text-sm">
-                  <CheckCircle2 size={18} className="text-blue-500" />
-                  {text}
-                </li>
-              ))}
-            </ul>
+        {/* DETAILS GRID - More compact spacing */}
+        <div className="grid md:grid-cols-2 gap-8 py-12 border-y border-slate-100 mb-12">
+          <div className="space-y-4">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 mb-4">Core Specifications</h2>
+            <div className="grid gap-y-3">
+              <InfoRow label="Year Model" value={bike.year_mf} icon={<Calendar size={14}/>} />
+              <InfoRow label="Fuel Type" value={bike.fuel_use} icon={<Fuel size={14}/>} />
+              <InfoRow label="Available Colors" value={bike.color} icon={<Palette size={14}/>} />
+            </div>
           </div>
-
-          <div className="p-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Vehicle Details</h2>
-            <p className="text-slate-500 leading-relaxed">
-              This motorcycle is regularly serviced to ensure safety and performance. 
-              Ideal for city rides and highway cruising, offering a smooth experience 
-              and modern styling.
-            </p>
+          <div className="space-y-4 md:border-l md:pl-8">
+             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 mb-4">Handling & Type</h2>
+             <div className="grid gap-y-3">
+               <InfoRow label="Capacity" value={`${bike.max_passengers} Persons`} icon={<Users size={14}/>} />
+               <InfoRow label="Transmission" value={bike.transmission} icon={<Settings size={14}/>} />
+               <InfoRow label="Body Style" value={bike.type} icon={<Shield size={14}/>} />
+             </div>
           </div>
         </div>
 
-        {/* POLISHED RENTAL TABLE */}
-        <section>
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900">Rental Charges</h2>
-              <p className="text-slate-500">Choose the plan that fits your journey</p>
-            </div>
-          </div>
+        {/* DESCRIPTION - Refined typography */}
+        <div className="max-w-3xl mb-16">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4">About this vehicle</h2>
+          <p className="text-lg text-slate-600 leading-relaxed font-medium italic italic">
+            "{bike.description}"
+          </p>
+        </div>
 
+        {/* CHARGE TABLE - Modernized with better contrast */}
+        <section className="mt-12">
+          <div className="flex justify-between items-end mb-6">
+             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950">Rental Breakdown</h2>
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">All prices in GBP (£)</p>
+          </div>
           <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-            <table className="w-full text-left border-collapse bg-white">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="px-6 py-5 font-semibold text-sm uppercase tracking-wider">Duration</th>
-                  <th className="px-6 py-5 font-semibold text-sm uppercase tracking-wider">Charge</th>
-                  <th className="px-6 py-5 font-semibold text-sm uppercase tracking-wider">Included KM</th>
-                  <th className="px-6 py-5 font-semibold text-sm uppercase tracking-wider">Over Limit</th>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Duration</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Charge</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Limit</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Extra KM</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  ["1 Day", "৳3,500", "120 KM", "৳20 / KM"],
-                  ["3 Days", "৳10,000", "350 KM", "৳18 / KM"],
-                  ["7 Days", "৳22,000", "900 KM", "৳15 / KM"],
-                  ["30 Days", "৳75,000", "3,000 KM", "৳12 / KM"],
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="px-6 py-5 font-bold text-slate-900">{row[0]}</td>
-                    <td className="px-6 py-5 font-bold text-blue-600">{row[1]}</td>
-                    <td className="px-6 py-5 text-slate-600">{row[2]}</td>
-                    <td className="px-6 py-5 text-slate-500 text-sm italic">{row[3]}</td>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {bike.rental_charges?.map((row: any, i: number) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-6 py-4 font-bold text-slate-900 text-sm">{row.duration}</td>
+                    <td className="px-6 py-4 font-black text-blue-600 text-lg italic">{row.charge}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-500">{row.max_km}</td>
+                    <td className="px-6 py-4 text-xs text-slate-400 font-medium italic group-hover:text-slate-950 transition-colors">{row.extra_charge}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </section>
-
       </div>
     </section>
+  );
+}
+
+function SpecBox({ label, value, icon }: { label: string, value: string, icon?: any }) {
+  return (
+    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center">
+      <div className="flex items-center gap-1 mb-1">
+        {icon && <span className="text-blue-500">{icon}</span>}
+        <p className="text-[8px] font-black uppercase text-slate-400 tracking-tighter">{label}</p>
+      </div>
+      <p className="text-md font-black italic uppercase text-slate-950 leading-none">{value}</p>
+    </div>
+  )
+}
+
+function InfoRow({ label, value, icon }: { label: string, value: any, icon: any }) {
+  return (
+    <div className="flex items-center justify-between py-2 group">
+      <div className="flex items-center gap-3 text-slate-400 group-hover:text-blue-500 transition-colors font-bold text-[11px] uppercase tracking-tight">
+        {icon} <span>{label}</span>
+      </div>
+      <span className="font-bold text-slate-800 text-sm italic">{value || "---"}</span>
+    </div>
   );
 }

@@ -18,8 +18,13 @@ class AdminUserOut(BaseModel):
         from_attributes = True # Updated for Pydantic v2 (previously orm_mode = True)
 
 # --- BIKE SCHEMAS (Add these) ---
+class RentalCharge(BaseModel):
+    duration: str
+    charge: str
+    max_km: str
+    extra_charge: str
+
 class BikeBase(BaseModel):
-    slug: str
     name: str
     price: str
     image: str
@@ -27,11 +32,23 @@ class BikeBase(BaseModel):
     fuel: str
     topSpeed: str
     description: str
+    slug: str
+    # New fields from your sketch
+    year_mf: Optional[str] = None
+    fuel_use: Optional[str] = None
+    color: Optional[str] = None
+    max_passengers: Optional[int] = 2
+    transmission: Optional[str] = None
+    type: Optional[str] = None
+    rental_charges: Optional[List[RentalCharge]] = None
 
 class BikeCreate(BikeBase):
-    pass  # This is used for POST requests
+    pass
 
 class BikeOut(BikeBase):
+    id: int
+    class Config:
+        from_attributes = True # Allows Pydantic to read SQLAlchemy models
     id: int
 
     class Config:

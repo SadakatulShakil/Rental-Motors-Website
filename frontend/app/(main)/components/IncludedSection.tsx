@@ -33,7 +33,7 @@ export default function DynamicIncludedSection() {
   }
 
   return (
-    <section className="py-4 bg-gray-100">
+    <section className="py-16 bg-gray-100">
       {/* Features Grid */}
       <div className="max-w-6xl mx-auto text-center mb-12 px-4">
         {/* 🔹 Dynamic Body Titles */}

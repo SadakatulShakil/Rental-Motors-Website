@@ -19,6 +19,20 @@ def add_slide(data: HeroSlideBase, db: Session = Depends(get_db)):
     db.refresh(new_slide)
     return new_slide
 
+@router.put("/slides/{slide_id}", response_model=HeroSlideOut)
+def update_slide(slide_id: int, data: HeroSlideBase, db: Session = Depends(get_db)):
+    slide = db.query(HeroSlide).filter(HeroSlide.id == slide_id).first()
+    if not slide:
+        raise HTTPException(status_code=404, detail="Slide not found")
+    
+    # Update fields
+    for key, value in data.model_dump().items():
+        setattr(slide, key, value)
+    
+    db.commit()
+    db.refresh(slide)
+    return slide
+    
 @router.delete("/slides/{slide_id}")
 def delete_slide(slide_id: int, db: Session = Depends(get_db)):
     slide = db.query(HeroSlide).filter(HeroSlide.id == slide_id).first()

@@ -37,6 +37,20 @@ def add_bike(bike: schemas.BikeCreate, db: Session = Depends(get_db)):
     db.refresh(new_bike)
     return new_bike
 
+@router.put("/bikes/{slug}", response_model=schemas.BikeOut)
+def update_bike(slug: str, bike_data: schemas.BikeCreate, db: Session = Depends(get_db)):
+    db_bike = db.query(Bike).filter(Bike.slug == slug).first()
+    if not db_bike:
+        raise HTTPException(status_code=404, detail="Bike not found")
+
+    # Update all fields dynamically
+    for key, value in bike_data.model_dump().items():
+        setattr(db_bike, key, value)
+
+    db.commit()
+    db.refresh(db_bike)
+    return db_bike
+
 # 4. DELETE BIKE
 @router.delete("/bikes/{slug}")
 def delete_bike(slug: str, db: Session = Depends(get_db)):

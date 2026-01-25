@@ -39,7 +39,7 @@ export default function AboutSection() {
         
         {/* Row 1: Page Title + Page Subtitle (From Universal Meta) */}
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-black mb-2">
+          <h2 className="text-4xl font-bold uppercase text-black mb-2">
             {meta.page_title || "Our Vision"}
           </h2>
           <h3 className="text-lg text-gray-700 italic">

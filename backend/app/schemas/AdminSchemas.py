@@ -177,3 +177,18 @@ class FooterSettingsRead(FooterSettingsBase):
 
     class Config:
         from_attributes = True
+        
+# --- CHAT OPTION SCHEMAS ---
+class ChatOptionBase(BaseModel):
+    label: str
+    icon_name: str
+    reply_text: str
+
+class ChatOptionCreate(ChatOptionBase):
+    pass
+
+class ChatOptionOut(ChatOptionBase):
+    id: int
+
+    class Config:
+        from_attributes = True

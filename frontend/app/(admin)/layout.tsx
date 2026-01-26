@@ -14,7 +14,8 @@ import {
   Image as ImageIcon, 
   Phone,
   ChevronLeft,
-  ScanSearch
+  ScanSearch,
+  BotMessageSquare
 } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -91,6 +92,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/admin/footer" 
             label="Footer Info" 
             icon={<ScanSearch size={22} />} 
+            collapsed={isCollapsed} 
+          />
+           <SidebarLink 
+            href="/admin/chatbot" 
+            label="Chat Bot" 
+            icon={<BotMessageSquare size={22} />} 
             collapsed={isCollapsed} 
           />
         </nav>

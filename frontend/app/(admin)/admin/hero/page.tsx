@@ -1,17 +1,28 @@
 "use client"
 import { useState, useEffect } from "react"
+import { 
+  Save, Upload, Trash2, Loader2, 
+  Edit2, X, Plus, Layers, Image as ImageIcon,
+  ArrowUpCircle, LayoutPanelTop
+} from "lucide-react"
 
 export default function AdminHeroPage() {
   const [slides, setSlides] = useState<any[]>([])
   const [newSlide, setNewSlide] = useState({ title: "", subtitle: "", image_url: "", order: 0 })
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null) // 🔹 Track which slide is being edited
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
   const fetchData = async () => {
-    const res = await fetch("http://localhost:8000/admin/hero/slides")
-    if (res.ok) setSlides(await res.json())
+    try {
+      const res = await fetch("http://localhost:8000/admin/hero/slides")
+      if (res.ok) setSlides(await res.json())
+    } finally {
+      setFetching(false)
+    }
   }
 
   useEffect(() => { fetchData() }, [])
@@ -28,8 +39,9 @@ export default function AdminHeroPage() {
     setUploading(false)
   }
 
-  // 🔹 New: Handle both Add and Update
   const handleSubmit = async () => {
+    if (!newSlide.title || !newSlide.image_url) return alert("Title and Image are required")
+    setLoading(true)
     const url = editingId 
         ? `http://localhost:8000/admin/hero/slides/${editingId}` 
         : "http://localhost:8000/admin/hero/slides";
@@ -47,6 +59,7 @@ export default function AdminHeroPage() {
         setEditingId(null)
         fetchData()
     }
+    setLoading(false)
   }
 
   const startEdit = (slide: any) => {
@@ -57,80 +70,168 @@ export default function AdminHeroPage() {
         image_url: slide.image_url, 
         order: slide.order 
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' }) // Scroll up to the form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleDeleteSlide = async (id: number) => {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm("Remove this slide from the homepage?")) return;
     await fetch(`http://localhost:8000/admin/hero/slides/${id}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` }
     });
     fetchData()
   };
 
+  if (fetching) return <div className="p-10 text-center animate-pulse italic font-black text-slate-900">Syncing Slider...</div>
+
   return (
-    <div className="p-8 space-y-8 bg-gray-50 min-h-screen text-black">
-      <h1 className="text-3xl font-bold">Manage Hero Slider</h1>
-
-      {/* Form Section (Dual Purpose) */}
-      <div className={`p-6 rounded-xl border grid grid-cols-1 md:grid-cols-2 gap-8 shadow-sm transition-colors ${editingId ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'}`}>
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">{editingId ? "Edit Slide" : "Add New Slide"}</h2>
-          <input placeholder="Main Title" value={newSlide.title} onChange={e => setNewSlide({...newSlide, title: e.target.value})} className="w-full border p-2 rounded" />
-          <textarea placeholder="Subtitle" value={newSlide.subtitle} onChange={e => setNewSlide({...newSlide, subtitle: e.target.value})} className="w-full border p-2 rounded" rows={2} />
-          <input type="number" placeholder="Order" value={newSlide.order} onChange={e => setNewSlide({...newSlide, order: parseInt(e.target.value)})} className="w-full border p-2 rounded" />
-          
-          <div className="flex gap-2">
-            <button onClick={handleSubmit} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">
-                {editingId ? "Update Slide" : "Add Slide"}
-            </button>
-            {editingId && (
-                <button onClick={() => {setEditingId(null); setNewSlide({title:"", subtitle:"", image_url:"", order:0})}} className="bg-gray-500 text-white px-6 py-2 rounded-lg font-bold">
-                    Cancel
-                </button>
-            )}
-          </div>
+    <div className="p-8 max-w-6xl mx-auto bg-white rounded-[2.5rem] shadow-sm border border-slate-100 space-y-12 mb-20">
+      
+      {/* HEADER */}
+      <div className="flex items-center justify-between border-b pb-6">
+        <div>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-slate-900">Hero Slider</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Homepage Banner Management</p>
         </div>
-
-        <div className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center bg-gray-50">
-          {newSlide.image_url ? (
-            <img src={newSlide.image_url} className="h-40 w-full object-cover rounded-lg mb-4" />
-          ) : <div className="h-40 flex items-center text-gray-400">No Image Selected</div>}
-          <input type="file" onChange={handleUpload} className="text-sm cursor-pointer w-full" />
-          {uploading && <p className="text-blue-600 text-xs mt-2">Uploading...</p>}
+        <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
+           <Layers size={16} className="text-blue-600" />
+           <span className="text-[10px] font-black uppercase text-slate-600">{slides.length} Active Slides</span>
         </div>
       </div>
 
-      {/* List Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {slides.map(slide => (
-          <div key={slide.id} className="bg-white rounded-xl overflow-hidden shadow border group relative">
-            {slide.image_url ? (
-              <img src={slide.image_url} alt={slide.title} className="h-48 w-full object-cover" />
-            ) : <div className="h-48 w-full bg-gray-200 flex items-center justify-center text-gray-400 italic">No image</div>}
-            
-            <div className="p-4">
-              <h3 className="font-bold">{slide.title}</h3>
-              <p className="text-sm text-gray-500">{slide.subtitle}</p>
+      {/* SECTION 1: SLIDE BUILDER */}
+      <div className={`p-8 rounded-[2.5rem] border-2 transition-all ${editingId ? 'bg-blue-50/50 border-blue-200' : 'bg-slate-950 border-slate-900 shadow-2xl shadow-slate-900/10'}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="space-y-6">
+                <SectionHeader 
+                    icon={editingId ? <Edit2 size={18}/> : <Plus size={18}/>} 
+                    title={editingId ? "Modify Slide" : "Create New Slide"} 
+                    dark={!editingId}
+                />
+                
+                <AdminInput 
+                    label="Slide Heading" 
+                    value={newSlide.title} 
+                    onChange={(e:any) => setNewSlide({...newSlide, title: e.target.value})} 
+                    dark={!editingId}
+                />
+                
+                <div className="flex flex-col gap-2">
+                    <label className={`text-[10px] font-black uppercase tracking-widest ${editingId ? 'text-slate-400' : 'text-slate-500'}`}>Sub-Heading / Description</label>
+                    <textarea 
+                        value={newSlide.subtitle} 
+                        onChange={(e:any) => setNewSlide({...newSlide, subtitle: e.target.value})} 
+                        className={`w-full bg-transparent border-b-2 p-2 font-bold outline-none text-sm resize-none transition-all ${editingId ? 'border-blue-100 text-slate-900 focus:border-blue-600' : 'border-slate-800 text-white focus:border-blue-500'}`} 
+                        rows={2} 
+                    />
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <div className="w-32">
+                        <AdminInput 
+                            label="Display Order" 
+                            type="number"
+                            value={newSlide.order} 
+                            onChange={(e:any) => setNewSlide({...newSlide, order: parseInt(e.target.value)})} 
+                            dark={!editingId}
+                        />
+                    </div>
+                    <div className="flex-1 pt-4">
+                        <button onClick={handleSubmit} disabled={loading} className={`w-full py-4 rounded-2xl font-black italic text-xs uppercase transition-all flex items-center justify-center gap-2 ${editingId ? 'bg-blue-600 text-white hover:bg-slate-900' : 'bg-red-600 text-white hover:bg-white hover:text-red-600'}`}>
+                            {loading ? <Loader2 className="animate-spin"/> : editingId ? "Update Slide Asset" : "Deploy Slide"}
+                        </button>
+                    </div>
+                    {editingId && (
+                        <button onClick={() => {setEditingId(null); setNewSlide({title:"", subtitle:"", image_url:"", order:0})}} className="mt-4 p-4 bg-white text-slate-400 rounded-2xl border border-slate-100 hover:text-red-500">
+                            <X size={20}/>
+                        </button>
+                    )}
+                </div>
             </div>
-            
-            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Edit Button */}
-              <button onClick={() => startEdit(slide)} className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </button>
-              {/* Delete Button */}
-              <button onClick={() => handleDeleteSlide(slide.id)} className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+
+            <div className="flex flex-col gap-4">
+                <p className={`text-[10px] font-black uppercase tracking-widest ${editingId ? 'text-slate-400' : 'text-slate-500'}`}>Visual Content</p>
+                <div className={`relative aspect-video rounded-3xl overflow-hidden border-2 border-dashed flex items-center justify-center transition-all ${editingId ? 'border-blue-200 bg-white' : 'border-slate-800 bg-slate-900/50'}`}>
+                    {newSlide.image_url ? (
+                        <>
+                            <img src={newSlide.image_url} className="w-full h-full object-cover shadow-2xl" alt="Preview" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                <label className="cursor-pointer bg-white text-slate-900 px-6 py-2 rounded-xl font-black italic text-[10px] uppercase flex items-center gap-2">
+                                    <Upload size={14} /> Change Image
+                                    <input type="file" className="hidden" onChange={handleUpload} />
+                                </label>
+                            </div>
+                        </>
+                    ) : (
+                        <label className="cursor-pointer flex flex-col items-center gap-3 group">
+                            <div className="p-4 bg-slate-800 rounded-full text-slate-500 group-hover:text-blue-500 transition-colors">
+                                <ImageIcon size={32} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase text-slate-500 italic">Upload slide background</span>
+                            <input type="file" className="hidden" onChange={handleUpload} />
+                        </label>
+                    )}
+                    {uploading && (
+                        <div className="absolute inset-0 bg-blue-600/90 flex flex-col items-center justify-center text-white">
+                            <Loader2 className="animate-spin mb-2" />
+                            <span className="text-[10px] font-black uppercase">Uploading Asset...</span>
+                        </div>
+                    )}
+                </div>
             </div>
-          </div>
-        ))}
+        </div>
+      </div>
+
+      {/* SECTION 2: SLIDE MANAGEMENT */}
+      <div className="space-y-6">
+        <SectionHeader icon={<LayoutPanelTop size={18}/>} title="Live Slider Sequence" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {slides.map(slide => (
+            <div key={slide.id} className="group bg-white rounded-[2rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all relative">
+                <div className="relative aspect-video overflow-hidden">
+                    {slide.image_url ? (
+                    <img src={slide.image_url} alt={slide.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    ) : <div className="w-full h-full bg-slate-100" />}
+                    
+                    <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-lg font-black italic text-[10px]">
+                        ORDER #{slide.order}
+                    </div>
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
+                </div>
+                
+                <div className="p-6">
+                    <h3 className="font-black uppercase italic text-slate-900 text-sm mb-1 tracking-tighter">{slide.title}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">{slide.subtitle}</p>
+                </div>
+
+                <div className="absolute top-4 right-4 flex gap-2 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+                    <button onClick={() => startEdit(slide)} className="bg-white text-blue-600 p-3 rounded-xl shadow-xl hover:bg-blue-600 hover:text-white transition-all">
+                        <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => handleDeleteSlide(slide.id)} className="bg-white text-red-600 p-3 rounded-xl shadow-xl hover:bg-red-600 hover:text-white transition-all">
+                        <Trash2 size={16} />
+                    </button>
+                </div>
+            </div>
+            ))}
+        </div>
       </div>
     </div>
   )
 }
+
+// --- Internal UI Components ---
+const SectionHeader = ({ icon, title, dark = false }: any) => (
+  <div className={`flex items-center gap-3 border-l-4 pl-4 ${dark ? 'border-red-600' : 'border-blue-600'}`}>
+    <div className={dark ? 'text-red-600' : 'text-blue-600'}>{icon}</div>
+    <h2 className={`text-sm font-black uppercase italic tracking-widest ${dark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
+  </div>
+);
+
+const AdminInput = ({ label, dark = false, ...props }: any) => (
+  <div className="flex flex-col gap-2">
+    <label className={`text-[10px] font-black uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</label>
+    <input {...props} className={`w-full border-b-2 py-3 font-bold outline-none transition-all bg-transparent ${dark ? 'border-slate-800 text-white focus:border-red-500' : 'border-slate-100 text-slate-900 focus:border-blue-600'}`} />
+  </div>
+);

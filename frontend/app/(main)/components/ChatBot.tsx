@@ -1,111 +1,114 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { MessageCircle, X, Minimize2, MapPin, PoundSterling, ClipboardList, Phone, User } from "lucide-react"
+import { MessageCircle, X, Minimize2, User, Sparkles } from "lucide-react"
+import { CHATBOT_ICONS } from "@/lib/chatbot-icons"
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
-  const [showGreeting, setShowGreeting] = useState(false)
-  const [chatHistory, setChatHistory] = useState([
-    { role: "bot", text: "Hello! 👋 I'm your ARP assistant. How can I help you today?" }
-  ])
+  const [showHelp, setShowHelp] = useState(false) 
+  const [options, setOptions] = useState<any[]>([])
+  const [chatHistory, setChatHistory] = useState([{ role: "bot", text: "Hello! 👋 I'm your assistant. How can I help you today?" }])
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const options = [
-    { id: "price", label: "Price", icon: <PoundSterling size={14} />, reply: "Our rentals start at £40/day. Long-term rentals (7+ days) get a 15% discount! Check our Vehicles page for details." },
-    { id: "location", label: "Location", icon: <MapPin size={14} />, reply: "We are located in East London. We also offer delivery services within the M25!" },
-    { id: "requirements", label: "Requirements", icon: <ClipboardList size={14} />, reply: "You'll need a valid Driving License, a CBT certificate (for 125cc), and a proof of address." },
-    { id: "contact", label: "Contact", icon: <Phone size={14} />, reply: "You can reach us 24/7 on WhatsApp or call our emergency line: 01751330394." },
-  ]
-
   useEffect(() => {
-    const timer = setTimeout(() => { if (!isOpen) setShowGreeting(true) }, 2000)
-    return () => clearTimeout(timer)
-  }, [isOpen])
+    // Show tooltip after 1 second delay on initial load
+    const helpTimer = setTimeout(() => setShowHelp(true), 1000)
+    
+    fetch("http://localhost:8000/admin/chatbot/options")
+      .then(res => res.json())
+      .then(data => setOptions(data))
+      .catch(err => console.error("Chatbot fetch error:", err))
+
+    return () => clearTimeout(helpTimer)
+  }, [])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [chatHistory])
 
-  const handleOptionClick = (option: typeof options[0]) => {
-    // Add user message then bot reply
+  const handleAction = (opt: any) => {
     setChatHistory(prev => [
       ...prev, 
-      { role: "user", text: option.label },
-      { role: "bot", text: option.reply }
+      { role: "user", text: opt.label }, 
+      { role: "bot", text: opt.reply_text }
     ])
   }
 
   return (
-    <div className="fixed bottom-6 right-24 z-[99] flex flex-col items-end gap-4 max-sm:right-6 max-sm:bottom-24">
+    <div className="fixed bottom-6 right-24 z-[99] flex flex-col items-end gap-3 max-sm:right-6">
       
+      {/* 🔹 BLINKING & JUMPING TOOLTIP */}
+      {!isOpen && showHelp && (
+        <div className="relative group animate-bounce duration-[2000ms]">
+          <div className="bg-white border border-slate-100 px-4 py-2 rounded-xl shadow-xl flex items-center gap-2">
+            {/* Blinking Icon */}
+            <Sparkles size={12} className="text-blue-600 animate-pulse" />
+            
+            {/* Blinking Text */}
+            <span className="text-[10px] font-black uppercase italic tracking-tighter text-slate-900 animate-pulse">
+              Need help? Chat with me
+            </span>
+          </div>
+          {/* Tooltip Triangle */}
+          <div className="absolute -bottom-1 right-6 w-2 h-2 bg-white border-r border-b border-slate-100 rotate-45"></div>
+        </div>
+      )}
+
       {isOpen && (
-        <div className="w-80 md:w-96 bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 duration-300">
-          
-          {/* Header - Real Avatar Style */}
-          <div className="bg-slate-950 p-6 text-white flex items-center justify-between">
+        <div className="w-80 md:w-96 bg-white rounded-[2.5rem] shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+          {/* Header */}
+          <div className="bg-slate-950 p-6 text-white flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center border-2 border-blue-400 overflow-hidden">
-                   <User size={28} className="mt-2 text-white" /> {/* Real User Avatar look */}
-                </div>
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-950 rounded-full"></div>
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 border-blue-400">
+                <User size={20}/>
               </div>
-              <div>
-                <p className="text-sm font-black uppercase italic tracking-tighter">ARP Support</p>
-                <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest">Always Active</p>
+              <div className="flex flex-col">
+                <span className="font-black italic uppercase text-xs tracking-tighter">ARP Assistant</span>
+                <span className="text-[10px] text-green-400 uppercase font-bold tracking-widest leading-none mt-1">Online</span>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
-              <Minimize2 size={20} />
-            </button>
+            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white"><Minimize2 size={18}/></button>
           </div>
 
-          {/* Chat Body */}
-          <div ref={scrollRef} className="h-[350px] p-6 bg-slate-50 overflow-y-auto flex flex-col gap-4 scroll-smooth">
-            {chatHistory.map((chat, i) => (
-              <div key={i} className={`max-w-[85%] p-4 rounded-2xl text-xs font-bold leading-relaxed shadow-sm ${
-                chat.role === "user" 
+          {/* Chat area */}
+          <div ref={scrollRef} className="h-80 p-5 overflow-y-auto bg-slate-50 flex flex-col gap-4">
+            {chatHistory.map((c, i) => (
+              <div key={i} className={`p-4 rounded-2xl text-[11px] font-bold leading-relaxed shadow-sm max-w-[85%] ${
+                c.role === "user" 
                 ? "bg-blue-600 text-white self-end rounded-tr-none" 
-                : "bg-white text-slate-900 self-start rounded-tl-none border border-slate-100"
+                : "bg-white border border-slate-100 text-slate-800 self-start rounded-tl-none"
               }`}>
-                {chat.text}
+                {c.text}
               </div>
             ))}
           </div>
 
-          {/* Action Chips Container (Always stays at bottom) */}
-          <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-            <p className="text-[9px] font-black uppercase text-slate-400 mb-3 tracking-widest ml-1 text-center">Quick Actions</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-  {options.map((opt) => (
-    <button
-      key={opt.id}
-      onClick={() => handleOptionClick(opt)}
-      className="flex items-center gap-2 bg-white text-slate-900 border border-slate-200 px-4 py-2.5 rounded-full text-[11px] font-black uppercase italic transition-all duration-300 hover:text-blue-600 hover:border-blue-600 hover:shadow-[0_0_15px_rgba(37,99,235,0.1)] active:scale-95"
-    >
-      <span className="text-blue-600">{opt.icon}</span>
-      {opt.label}
-    </button>
-  ))}
-</div>
+          {/* Quick Actions */}
+          <div className="p-4 bg-white border-t border-slate-100 flex flex-wrap gap-2 justify-center shrink-0">
+            {options.map((opt, i) => (
+              <button 
+                key={i} 
+                onClick={() => handleAction(opt)} 
+                className="flex items-center gap-2 border border-slate-200 px-4 py-2 rounded-full text-[10px] font-black text-black uppercase italic hover:border-blue-600 hover:text-blue-600 transition-all active:scale-95"
+              >
+                <span className="text-blue-600">{CHATBOT_ICONS[opt.icon_name] || <MessageCircle size={14}/>}</span>
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Greeting Pop-up */}
-      {showGreeting && !isOpen && (
-        <div className="bg-white px-5 py-3 rounded-2xl shadow-xl border border-slate-100 mb-2 animate-bounce flex items-center gap-3">
-          <p className="text-xs font-black uppercase italic text-slate-900 tracking-tighter">Questions? Ask ARP 🏍️</p>
-          <button onClick={() => setShowGreeting(false)}><X size={14} className="text-slate-400"/></button>
-        </div>
-      )}
-
-      {/* Main Toggle Button */}
-      <button
-        onClick={() => { setIsOpen(!isOpen); setShowGreeting(false); }}
-        className={`${isOpen ? 'bg-slate-950 rotate-90' : 'bg-blue-600'} text-white p-4 rounded-2xl shadow-2xl transition-all duration-500`}
+      {/* Floating Toggle Button */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className={`${isOpen ? 'bg-slate-950 rotate-90' : 'bg-blue-600 shadow-blue-600/30'} text-white p-4 rounded-2xl shadow-2xl transition-all duration-500 hover:scale-110 active:scale-95 group relative`}
       >
-        {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
+        {isOpen ? <X size={28}/> : <MessageCircle size={28}/>}
+        
+        {!isOpen && (
+            <span className="absolute inset-0 rounded-2xl bg-blue-600 animate-ping opacity-25 group-hover:hidden"></span>
+        )}
       </button>
     </div>
   )

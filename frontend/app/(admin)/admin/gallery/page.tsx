@@ -1,166 +1,242 @@
-"use client"
-import { useState, useEffect } from "react"
+"use client";
+import { useState, useEffect } from "react";
+import { 
+  Save, Upload, Image as ImageIcon, Layout, 
+  Trash2, Loader2, Plus, Camera, X 
+} from "lucide-react";
 
 export default function AdminGalleryPage() {
-  const [images, setImages] = useState<any[]>([])
+  // Data States
+  const [images, setImages] = useState<any[]>([]);
   const [metaData, setMetaData] = useState({
     header_title: "", header_description: "", header_image: "",
     page_title: "", page_subtitle: ""
-  })
-  const [uploading, setUploading] = useState(false)
-  const [newImage, setNewImage] = useState<{file: File | null, desc: string}>({ file: null, desc: "" })
+  });
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+  // UI States
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [newImage, setNewImage] = useState<{file: File | null, desc: string}>({ file: null, desc: "" });
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
-    const [imgRes, metaRes] = await Promise.all([
-      fetch("http://localhost:8000/admin/gallery/"),
-      fetch("http://localhost:8000/admin/meta/gallery")
-    ])
-    if (imgRes.ok) setImages(await imgRes.json())
-    if (metaRes.ok) setMetaData(await metaRes.json())
-  }
+    try {
+        const [imgRes, metaRes] = await Promise.all([
+            fetch("http://localhost:8000/admin/gallery/"),
+            fetch("http://localhost:8000/admin/meta/gallery")
+        ]);
+        if (imgRes.ok) setImages(await imgRes.json());
+        if (metaRes.ok) setMetaData(await metaRes.json());
+    } finally {
+        setFetching(false);
+    }
+  };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --- Handlers ---
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    setUploading(true)
-    const data = new FormData(); data.append("image", file)
-    
-    // Note: ensure this endpoint matches your Gallery or About upload route
-    const res = await fetch("http://localhost:8000/admin/about/upload-image", {
-      method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
-    })
-    const result = await res.json()
-    setMetaData({ ...metaData, header_image: result.url })
-    setUploading(false)
-  }
+    setLoading(true);
+    const data = new FormData(); data.append("image", file);
+    try {
+      const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
+      });
+      const result = await res.json();
+      setMetaData({ ...metaData, header_image: result.url });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleUpload = async () => {
-    if (!newImage.file) return alert("Select an image first")
-    setUploading(true)
-    const formData = new FormData()
-    formData.append("image", newImage.file)
-    if (newImage.desc) formData.append("description", newImage.desc)
+  const handleUploadGalleryItem = async () => {
+    if (!newImage.file) return alert("Select an image first");
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("image", newImage.file);
+    if (newImage.desc) formData.append("description", newImage.desc);
 
     try {
       const res = await fetch("http://localhost:8000/admin/gallery/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
-      })
+      });
       if (res.ok) {
-        setNewImage({ file: null, desc: "" })
-        fetchData()
+        setNewImage({ file: null, desc: "" });
+        fetchData();
       }
-    } catch (err) { alert("Upload failed") }
-    finally { setUploading(false) }
-  }
+    } finally { setLoading(false); }
+  };
+
+  const handleSaveMeta = async () => {
+    setLoading(true);
+    try {
+      await fetch("http://localhost:8000/admin/meta/gallery", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(metaData),
+      });
+      alert("Gallery Settings Updated!");
+    } finally { setLoading(false); }
+  };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Remove this image?")) return
+    if (!confirm("Permanently remove this photo?")) return;
     await fetch(`http://localhost:8000/admin/gallery/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
-    })
-    fetchData()
-  }
+    });
+    fetchData();
+  };
 
-  const handleSaveMeta = async () => {
-    await fetch("http://localhost:8000/admin/meta/gallery", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(metaData),
-    })
-    alert("Gallery Header Updated!")
-  }
+  if (fetching) return <div className="p-10 text-center animate-pulse italic font-black">Loading Gallery Assets...</div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-black space-y-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">Manage Gallery</h1>
+    <div className="p-8 max-w-6xl mx-auto bg-white rounded-[2.5rem] shadow-sm border border-slate-100 space-y-12 mb-20">
+      
+      {/* Header Section */}
+      <div className="flex items-center justify-between border-b pb-6">
+        <div>
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-slate-900">Gallery Management</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Portfolio & Header Configuration</p>
+        </div>
+        <button 
+          onClick={handleSaveMeta} 
+          disabled={loading}
+          className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black italic flex items-center gap-2 hover:bg-slate-900 transition-all disabled:opacity-50 shadow-lg shadow-blue-900/10"
+        >
+          {loading ? <Loader2 className="animate-spin" /> : <Save size={18} />} SAVE CHANGES
+        </button>
+      </div>
 
-      {/* 🔹 SECTION 1: UNIVERSAL META (MATCHES INCLUDED PAGE) */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <h2 className="text-xl font-bold mb-6 text-black">Gallery Header & Titles</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Banner Title</label>
-              <input placeholder="e.g., OUR GALLERY" value={metaData.header_title} onChange={e => setMetaData({...metaData, header_title: e.target.value})} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Banner Description</label>
-              <textarea placeholder="Header Description" value={metaData.header_description} onChange={e => setMetaData({...metaData, header_description: e.target.value})} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" rows={2} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Section Title</label>
-                <input placeholder="Body Section Title" value={metaData.page_title} onChange={e => setMetaData({...metaData, page_title: e.target.value})} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Section Subtitle</label>
-                <input placeholder="Body Section Subtitle" value={metaData.page_subtitle} onChange={e => setMetaData({...metaData, page_subtitle: e.target.value})} className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
-              </div>
-            </div>
-            <button onClick={handleSaveMeta} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold transition-colors shadow-lg shadow-blue-900/10">
-              Save Header Settings
-            </button>
+      {/* SECTION 1: GALLERY TITLES & BANNER */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="space-y-6">
+          <SectionHeader icon={<Layout size={18}/>} title="Global Page Titles" />
+          <AdminInput label="Banner Title" value={metaData.header_title} onChange={(e:any) => setMetaData({...metaData, header_title: e.target.value})} />
+          
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Banner Description</label>
+            <textarea 
+              value={metaData.header_description} 
+              onChange={(e:any) => setMetaData({...metaData, header_description: e.target.value})} 
+              rows={2} 
+              className="w-full border-2 border-slate-100 rounded-2xl p-4 font-bold outline-none focus:border-blue-600 transition-all resize-none shadow-sm" 
+            />
           </div>
 
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center bg-gray-50 transition-hover hover:border-blue-400">
+          <div className="grid grid-cols-2 gap-4">
+            <AdminInput label="Body Title" value={metaData.page_title} onChange={(e:any) => setMetaData({...metaData, page_title: e.target.value})} />
+            <AdminInput label="Body Subtitle" value={metaData.page_subtitle} onChange={(e:any) => setMetaData({...metaData, page_subtitle: e.target.value})} />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Gallery Header Image</p>
+          <div className="border-2 border-dashed border-slate-100 rounded-[2.5rem] p-6 bg-slate-50/50 flex flex-col items-center group hover:border-blue-200 transition-all">
             {metaData.header_image ? (
-              <div className="relative w-full h-40 mb-4 rounded-lg overflow-hidden shadow-inner">
-                 <img src={metaData.header_image} className="w-full h-full object-cover" alt="Preview" />
-              </div>
+              <img src={metaData.header_image} className="h-52 w-full object-cover rounded-3xl shadow-md border-4 border-white mb-4" alt="Banner" />
             ) : (
-              <div className="h-40 flex items-center text-gray-400 italic">No banner image uploaded</div>
+              <div className="h-52 w-full bg-white rounded-3xl flex items-center justify-center text-[10px] font-bold text-slate-300 italic uppercase">No Image Set</div>
             )}
-            <input type="file" onChange={handleImageUpload} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full" />
+            <label className="w-full cursor-pointer">
+                <div className="flex items-center justify-center gap-2 py-3 bg-white rounded-xl shadow-sm border border-slate-100 group-hover:bg-slate-950 group-hover:text-white transition-all font-black italic text-xs uppercase">
+                    <Upload size={16} /> Replace Banner
+                </div>
+                <input type="file" className="hidden" onChange={handleBannerUpload} />
+            </label>
           </div>
         </div>
       </div>
 
-      {/* 🔹 SECTION 2: UPLOAD GALLERY IMAGES */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <h2 className="text-xl font-bold mb-4 text-black">Add New Gallery Photo</h2>
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1 w-full">
-             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Select Image</label>
-             <input type="file" onChange={e => setNewImage({...newImage, file: e.target.files?.[0] || null})} className="w-full border p-2 rounded" />
+      <hr className="border-slate-100" />
+
+      {/* SECTION 2: DARK UPLOAD BAR */}
+      <div className="space-y-8">
+        <SectionHeader icon={<Camera size={18}/>} title="Add New Media" />
+        
+        <div className="bg-slate-950 p-8 rounded-[2rem] flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-slate-900/20">
+          <div className="w-full md:w-64">
+             <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block tracking-widest">Select File</label>
+             <label className="cursor-pointer group">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-center gap-2 group-hover:bg-slate-800 transition-all overflow-hidden">
+                    <Plus size={16} className="text-blue-500" />
+                    <span className="text-[10px] font-bold text-slate-400 truncate">
+                        {newImage.file ? newImage.file.name : "Choose Image"}
+                    </span>
+                </div>
+                <input type="file" className="hidden" onChange={e => setNewImage({...newImage, file: e.target.files?.[0] || null})} />
+             </label>
           </div>
+          
           <div className="flex-1 w-full">
-             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Caption / Description</label>
-             <input placeholder="e.g., Happy Customer with KTM" value={newImage.desc} onChange={e => setNewImage({...newImage, desc: e.target.value})} className="w-full border p-2 rounded outline-none focus:ring-2 focus:ring-green-500" />
+             <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block tracking-widest">Photo Caption / Description</label>
+             <input 
+               placeholder="e.g. 2024 Ducati Panigale v4 Review" 
+               value={newImage.desc} 
+               onChange={e => setNewImage({...newImage, desc: e.target.value})} 
+               className="w-full bg-slate-900 border-b-2 border-slate-800 text-white py-2 outline-none focus:border-blue-500 font-bold placeholder:text-slate-700"
+             />
           </div>
-          <button onClick={handleUpload} disabled={uploading} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold transition-colors shadow-lg shadow-green-900/10 whitespace-nowrap">
-            {uploading ? "Uploading..." : "Upload Photo"}
+
+          <button 
+            onClick={handleUploadGalleryItem} 
+            disabled={loading || !newImage.file}
+            className="bg-blue-600 text-white px-8 py-3 rounded-xl font-black italic hover:bg-white hover:text-blue-600 transition-all uppercase text-xs"
+          >
+            {loading ? "Uploading..." : "Publish Photo"}
           </button>
         </div>
       </div>
 
-      {/* 🔹 SECTION 3: GRID PREVIEW */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {images.map(img => (
-          <div key={img.id} className="relative group rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-            <img src={img.image} className="h-40 w-full object-cover" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button onClick={() => handleDelete(img.id)} className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-lg hover:bg-red-700">
-                Delete
+      {/* SECTION 3: MASONRY-STYLE GRID */}
+      <div className="space-y-6">
+        <SectionHeader icon={<ImageIcon size={18}/>} title="Live Gallery Feed" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {images.map(img => (
+            <div key={img.id} className="group relative bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+              <img src={img.image} className="h-48 w-full object-cover" alt="Gallery" />
+              
+              {/* Overlay Overlay */}
+              <div className="absolute inset-0 bg-slate-950/80 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm">
+                <button 
+                  onClick={() => handleDelete(img.id)} 
+                  className="bg-white text-red-600 px-6 py-2 rounded-xl font-black italic text-xs uppercase shadow-lg hover:bg-red-600 hover:text-white transition-all"
+                >
+                  Delete
                 </button>
-            </div>
-            {img.description && (
-                <div className="p-2">
-                    <p className="text-xs text-gray-600 truncate">{img.description}</p>
+              </div>
+
+              {img.description && (
+                <div className="p-4 bg-white border-t border-slate-50">
+                   <p className="text-[10px] font-black italic uppercase text-slate-900 truncate tracking-tight">{img.description}</p>
                 </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  )
+  );
 }
+
+// --- Internal Components (consistent with your other pages) ---
+const SectionHeader = ({ icon, title }: any) => (
+  <div className="flex items-center gap-3 border-l-4 border-blue-600 pl-4">
+    <div className="text-blue-600">{icon}</div>
+    <h2 className="text-sm font-black uppercase italic tracking-widest text-slate-900">{title}</h2>
+  </div>
+);
+
+const AdminInput = ({ label, ...props }: any) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{label}</label>
+    <input {...props} className="w-full border-b-2 border-slate-100 py-3 font-bold outline-none focus:border-blue-600 transition-all text-slate-900 bg-transparent" />
+  </div>
+);

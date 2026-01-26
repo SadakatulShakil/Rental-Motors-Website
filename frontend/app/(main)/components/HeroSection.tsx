@@ -33,7 +33,7 @@ export default function HeroSection() {
     if (slides.length === 0) return;
     const timer = setInterval(() => {
       setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
-    }, 5000)
+    }, 3000)
     return () => clearInterval(timer)
   }, [slides])
 
@@ -70,24 +70,35 @@ export default function HeroSection() {
               {slide.subtitle}
             </p>
             
-            {/* 🔹 YOUR BUTTONS ARE HERE */}
-            <div className="flex gap-6">
-              {/* VIEW BIKES CIRCLE */}
-              <Link 
-                href="/bikes" 
-                className="bg-red-600 text-white w-32 h-32 rounded-full text-sm font-bold hover:bg-red-700 transition-all hover:scale-110 flex items-center justify-center text-center shadow-xl leading-tight border-2 border-white/20 uppercase"
-              >
-                VIEW<br/>BIKES
-              </Link>
+{/* Interactive Buttons Container */}
+<div className="flex gap-10 mt-12 relative">
+  
+  {/* VIEW BIKES CIRCLE (From Left) */}
+  <Link 
+    href="/bikes" 
+    className="group relative flex items-center justify-center animate-race-left opacity-0"
+    style={{ animationDelay: '800ms' }}
+  >
+    <div className="absolute inset-0 rounded-full bg-red-600/40 animate-impact-pulse" />
+    <div className="bg-red-600 text-white w-32 h-32 rounded-full text-[10px] font-black hover:scale-110 transition-all flex flex-col items-center justify-center text-center shadow-xl border-4 border-white/10 uppercase italic z-10">
+      <span>EXPLORE</span>
+      <span className="text-2xl leading-none">BIKES</span>
+    </div>
+  </Link>
 
-              {/* BOOK NOW CIRCLE */}
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-yellow-500 text-black w-32 h-32 rounded-full text-sm font-bold hover:bg-yellow-600 transition-all hover:scale-110 flex items-center justify-center text-center shadow-xl leading-tight border-2 border-black/10 uppercase"
-              >
-                BOOK<br/>NOW
-              </button>
-            </div>
+  {/* BOOK NOW CIRCLE (From Right) */}
+  <button
+    onClick={() => setShowForm(true)}
+    className="group relative flex items-center justify-center animate-race-right opacity-0"
+    style={{ animationDelay: '800ms' }}
+  >
+    <div className="absolute inset-0 rounded-full bg-yellow-500/40 animate-impact-pulse" />
+    <div className="bg-yellow-500 text-black w-32 h-32 rounded-full text-[10px] font-black hover:scale-110 transition-all flex flex-col items-center justify-center text-center shadow-xl border-4 border-black/5 uppercase italic z-10">
+      <span>BOOK</span>
+      <span className="text-2xl leading-none">NOW</span>
+    </div>
+  </button>
+</div>
           </div>
         </div>
       ))}

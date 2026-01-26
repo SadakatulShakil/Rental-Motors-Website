@@ -15,7 +15,7 @@ export default function AdminNavbar() {
     <nav className="bg-gray-100 text-white px-6 py-4 flex justify-end">
       <button
           onClick={logout}
-          className="bg-red-600 px-4 py-2 rounded hover:bg-red-700"
+          className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-red-600/10 hover:text-red-500 text-slate-500 p-4 rounded-2xl transition-all font-black italic text-[10px] uppercase tracking-widest border border-transparent hover:border-red-600/20"
         >
           Logout
         </button>

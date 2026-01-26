@@ -86,7 +86,7 @@ export default function FooterAdmin() {
   if (fetching) return <div className="p-10 text-center animate-pulse italic font-black">Loading Settings...</div>;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 mt-10">
+    <div className="p-8 max-w-5xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-10 border-b pb-6">
         <div>

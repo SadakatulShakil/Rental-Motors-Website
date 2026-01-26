@@ -1,20 +1,29 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 export default function WhatsAppFloating() {
-  const phoneNumber = "447593799975"
-  const message = "Hi ARP Motors! I'm interested in renting a bike. Can you help me?"
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+  const [contactInfo, setContactInfo] = useState<any>(null)
+
+  useEffect(() => {
+    fetch("http://localhost:8000/admin/contact/info")
+      .then(res => res.json())
+      .then(data => setContactInfo(data))
+      .catch(err => console.error("WhatsApp Fetch Error:", err))
+  }, [])
+
+  // Fallback to your hardcoded number if API isn't ready
+  const rawNumber = contactInfo?.phone || "447593799975"
+  const cleanNumber = rawNumber.replace(/\D/g, '')
+  
+  const message = "Hi! I'm interested in renting a bike. Can you help me?"
+  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
 
   return (
-    /* Hidden on Mobile (sm:flex) because the Navbar will handle the mobile icon */
     <div className="hidden sm:flex fixed bottom-6 right-6 z-[9999] flex-col items-end gap-3 group">
-      {/* Tooltip Message */}
       <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-2xl pointer-events-none uppercase tracking-tighter italic">
         Need Help? Chat Now
       </span>
 
-      {/* Main Button */}
       <a
         href={whatsappUrl}
         target="_blank"
@@ -28,28 +37,38 @@ export default function WhatsAppFloating() {
   )
 }
 
-// Export the Icon and Logic as a separate small component for the Navbar to use
 export function WhatsAppMobileBtn() {
-  const phoneNumber = "447593799975"
-  const message = "Hi ARP Motors! I'm interested in renting a bike. Can you help me?"
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+  const [contactInfo, setContactInfo] = useState<any>(null)
+
+  useEffect(() => {
+    fetch("http://localhost:8000/admin/contact/info")
+      .then(res => res.json())
+      .then(data => setContactInfo(data))
+      .catch(err => console.error("WhatsApp Fetch Error:", err))
+  }, [])
+
+  const rawNumber = contactInfo?.phone || "447593799975"
+  const cleanNumber = rawNumber.replace(/\D/g, '')
+  const message = "Hi! I'm interested in renting a bike. Can you help me?"
+  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
 
   return (
     <a 
       href={whatsappUrl} 
       target="_blank" 
+      rel="noopener noreferrer"
       className="flex items-center gap-1.5 bg-[#25D366] px-3 py-1.5 rounded-full shadow-lg active:scale-95 transition-all"
     >
       <div className="relative flex items-center justify-center">
         <span className="absolute inset-0 rounded-full bg-white animate-ping opacity-60"></span>
         <WhatsAppIcon className="w-5 h-5 fill-white relative z-10" />
       </div>
-      <span className="text-xs font-black uppercase italic text-white animate-pulse tracking-tight text-center leading-none">
-  Emergency Contact
-  <span className="block mt-0.5 text-[14px] tracking-normal not-italic">
-    01751330394
-  </span>
-</span>
+      <span className="text-[10px] font-black uppercase italic text-white animate-pulse tracking-tight text-center leading-none">
+        Emergency Contact
+        <span className="block mt-0.5 text-[12px] tracking-normal not-italic">
+          {rawNumber}
+        </span>
+      </span>
     </a>
   )
 }

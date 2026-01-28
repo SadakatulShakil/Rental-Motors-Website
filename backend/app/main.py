@@ -14,7 +14,7 @@ Base.metadata.create_all(bind=engine)
 # Add your Vercel URL to this list
 origins = [
     "http://localhost:3000",
-    "rental-motors-website.vercel.app", # Paste your actual Vercel URL here
+    "https://rental-motors-website.vercel.app", # Paste your actual Vercel URL here
 ]
 
 app.add_middleware(

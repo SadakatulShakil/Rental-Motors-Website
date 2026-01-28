@@ -1,22 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // This allows Next.js to fetch images from your local backend
+    // This allows Next.js to display images from your production sources
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8000',
-        pathname: '/static/uploads/**',
+        protocol: 'https',
+        hostname: 'rental-motors-website.onrender.com', // Allows images from any Render app
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com', // Allows images from Cloudinary
       },
       {
         protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '8000',
-        pathname: '/static/uploads/**',
+        hostname: 'localhost', // Allows images during local development
       },
     ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

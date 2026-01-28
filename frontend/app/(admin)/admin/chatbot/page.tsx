@@ -8,8 +8,10 @@ export default function ChatbotAdmin() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
-    fetch("http://localhost:8000/admin/chatbot/options")
+    fetch(`${apiUrl}/admin/chatbot/options`)
       .then(res => res.json())
       .then(data => {
         setOptions(data);
@@ -21,7 +23,7 @@ export default function ChatbotAdmin() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/admin/chatbot/options/bulk", {
+      const res = await fetch(`${apiUrl}/admin/chatbot/options/bulk`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(options),

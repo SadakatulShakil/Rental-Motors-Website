@@ -10,15 +10,17 @@ export default function HeroSection() {
   const [showForm, setShowForm] = useState(false)
   const [motorcycleOptions, setMotorcycleOptions] = useState<string[]>([])
   
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     // 1. Fetch Slider Data
-    fetch("http://localhost:8000/admin/hero/slides")
+    fetch(`${apiUrl}/admin/hero/slides`)
       .then(res => res.json())
       .then(data => setSlides(data))
       .catch(err => console.error("Hero Slider Fetch Error:", err))
 
     // 2. 🔹 Fetch Real Bike Names for the Booking Form
-    fetch("http://localhost:8000/admin/bikes")
+    fetch(`${apiUrl}/admin/bikes`)
       .then(res => res.json())
       .then(data => {
         // Assuming your API returns an array of objects like [{ name: "KTM...", ... }]

@@ -14,6 +14,8 @@ export default function AdminBikesPage() {
   const [editSlug, setEditSlug] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const [metaData, setMetaData] = useState({
     header_title: "", header_description: "", header_image: "",
     page_title: "", page_subtitle: ""
@@ -38,8 +40,8 @@ export default function AdminBikesPage() {
 
   const fetchData = async () => {
     const [metaRes, bikesRes] = await Promise.all([
-      fetch("http://localhost:8000/admin/meta/bikes"),
-      fetch("http://localhost:8000/admin/bikes")
+      fetch(`${apiUrl}/admin/meta/bikes`),
+      fetch(`${apiUrl}/admin/bikes`)
     ])
     if (metaRes.ok) setMetaData(await metaRes.json())
     if (bikesRes.ok) setBikes(await bikesRes.json())
@@ -50,7 +52,7 @@ export default function AdminBikesPage() {
   const handleImageUpload = async (file: File, isHeader: boolean) => {
     setUploading(true)
     const data = new FormData(); data.append("image", file)
-    const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+    const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
       method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
     })
     const result = await res.json()
@@ -61,7 +63,7 @@ export default function AdminBikesPage() {
 
   const handleSaveMeta = async () => {
     setLoading(true)
-    await fetch("http://localhost:8000/admin/meta/bikes", {
+    await fetch(`${apiUrl}/admin/meta/bikes`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(metaData),
@@ -74,7 +76,7 @@ export default function AdminBikesPage() {
     e.preventDefault()
     setLoading(true)
     const method = editSlug ? "PUT" : "POST"
-    const url = editSlug ? `http://localhost:8000/admin/bikes/${editSlug}` : "http://localhost:8000/admin/bikes/"
+    const url = editSlug ? `${apiUrl}/admin/bikes/${editSlug}` : `${apiUrl}/admin/bikes/`
     const slug = formData.name.toLowerCase().replace(/ /g, "-")
 
     const formattedData = {
@@ -106,7 +108,7 @@ export default function AdminBikesPage() {
 
   const handleDelete = async (slug: string) => {
     if (!window.confirm("Remove this bike from fleet?")) return
-    await fetch(`http://localhost:8000/admin/bikes/${slug}`, {
+    await fetch(`${apiUrl}/admin/bikes/${slug}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` },
     })
     fetchData()

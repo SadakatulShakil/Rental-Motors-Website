@@ -16,11 +16,13 @@ export default function AdminDashboard() {
   })
   const [loading, setLoading] = useState(true)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("admin_token")
-        const res = await fetch("http://localhost:8000/admin/stats", {
+        const res = await fetch(`${apiUrl}/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.ok) {

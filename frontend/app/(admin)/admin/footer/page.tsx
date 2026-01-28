@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Save, Upload, Globe, Link as LinkIcon, Facebook, Twitter, Instagram, Youtube, Loader2 } from "lucide-react";
 
 export default function FooterAdmin() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [settings, setSettings] = useState<any>({
@@ -17,7 +19,7 @@ export default function FooterAdmin() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8000/admin/footer")
+    fetch(`${apiUrl}/admin/footer`)
       .then((res) => res.json())
       .then((data) => {
         // 🔹 Replace nulls with empty strings
@@ -51,7 +53,7 @@ export default function FooterAdmin() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/admin/footer/upload-logo", {
+      const res = await fetch(`${apiUrl}/admin/footer/upload-logo`, {
         method: "PUT",
         body: formData,
       });
@@ -70,7 +72,7 @@ export default function FooterAdmin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/admin/footer", {
+      const res = await fetch(`${apiUrl}/admin/footer`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),

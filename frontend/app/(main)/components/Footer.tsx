@@ -9,13 +9,15 @@ export default function Footer() {
   const [bikes, setBikes] = useState([])
   const [error, setError] = useState(false)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchAllData = async () => {
       try {
         const [settingsRes, contactRes, bikesRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/footer"),
-          fetch("http://localhost:8000/admin/contact/info"),   
-          fetch("http://localhost:8000/admin/bikes")     
+          fetch(`${apiUrl}/admin/footer`),
+          fetch(`${apiUrl}/admin/contact/info`),   
+          fetch(`${apiUrl}/admin/bikes`)     
         ])
 
         if (settingsRes.ok) setFooterSettings(await settingsRes.json())

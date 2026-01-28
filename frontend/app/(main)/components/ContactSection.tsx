@@ -10,13 +10,15 @@ export default function ContactPage() {
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [status, setStatus] = useState({ loading: false, message: "" })
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [mRes, iRes, fRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/meta/contact"),
-          fetch("http://localhost:8000/admin/contact/info"),
-          fetch("http://localhost:8000/admin/contact/fields")
+          fetch(`${apiUrl}/admin/meta/contact`),
+          fetch(`${apiUrl}/admin/contact/info`),
+          fetch(`${apiUrl}/admin/contact/fields`)
         ])
         if (mRes.ok) setMeta(await mRes.json())
         if (iRes.ok) setInfo(await iRes.json())

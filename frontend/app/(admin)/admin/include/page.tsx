@@ -25,6 +25,8 @@ export default function AdminIncludedPage() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -32,9 +34,9 @@ export default function AdminIncludedPage() {
   const fetchData = async () => {
     try {
       const [fRes, pRes, mRes] = await Promise.all([
-        fetch("http://localhost:8000/admin/include/features"),
-        fetch("http://localhost:8000/admin/include/policies"),
-        fetch("http://localhost:8000/admin/meta/include")
+        fetch(`${apiUrl}/admin/include/features`),
+        fetch(`${apiUrl}/admin/include/policies`),
+        fetch(`${apiUrl}/admin/meta/include`)
       ])
       if (fRes.ok) setFeatures(await fRes.json())
       if (pRes.ok) setPolicies(await pRes.json())
@@ -50,8 +52,8 @@ export default function AdminIncludedPage() {
     setLoading(true)
     const method = editFeatId ? "PUT" : "POST"
     const url = editFeatId 
-      ? `http://localhost:8000/admin/include/features/${editFeatId}`
-      : "http://localhost:8000/admin/include/features"
+      ? `${apiUrl}/admin/include/features/${editFeatId}`
+      : `${apiUrl}/admin/include/features`
 
     const res = await fetch(url, {
       method,
@@ -74,7 +76,7 @@ export default function AdminIncludedPage() {
 
   const handleDeleteFeature = async (id: number) => {
     if (!confirm("Delete this feature?")) return
-    await fetch(`http://localhost:8000/admin/include/features/${id}`, {
+    await fetch(`${apiUrl}/admin/include/features/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -87,8 +89,8 @@ export default function AdminIncludedPage() {
     setLoading(true)
     const method = editPolicyId ? "PUT" : "POST"
     const url = editPolicyId 
-      ? `http://localhost:8000/admin/include/policies/${editPolicyId}`
-      : "http://localhost:8000/admin/include/policies"
+      ? `${apiUrl}/admin/include/policies/${editPolicyId}`
+      : `${apiUrl}/admin/include/policies`
 
     const res = await fetch(url, {
       method,
@@ -111,7 +113,7 @@ export default function AdminIncludedPage() {
 
   const handleDeletePolicy = async (id: number) => {
     if (!confirm("Delete this policy card?")) return
-    await fetch(`http://localhost:8000/admin/include/policies/${id}`, {
+    await fetch(`${apiUrl}/admin/include/policies/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -123,7 +125,7 @@ export default function AdminIncludedPage() {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true)
     const data = new FormData(); data.append("image", file)
-    const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+    const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
       method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
     })
     const result = await res.json()
@@ -133,7 +135,7 @@ export default function AdminIncludedPage() {
 
   const handleSaveMeta = async () => {
     setLoading(true)
-    await fetch("http://localhost:8000/admin/meta/include", {
+    await fetch(`${apiUrl}/admin/meta/include`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(metaData),

@@ -8,14 +8,16 @@ export default function DynamicIncludedSection() {
   const [loading, setLoading] = useState(true)
   const [meta, setMeta] = useState<any>(null)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   // 🔹 Fetch data from PostgreSQL via FastAPI
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [fRes, pRes, mRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/include/features"),
-          fetch("http://localhost:8000/admin/include/policies"),
-          fetch("http://localhost:8000/admin/meta/include") // 🔹 Fetch Meta
+          fetch(`${apiUrl}/admin/include/features`),
+          fetch(`${apiUrl}/admin/include/policies`),
+          fetch(`${apiUrl}/admin/meta/include`) // 🔹 Fetch Meta
         ])
         if (fRes.ok) setFeatures(await fRes.json())
         if (pRes.ok) setPolicies(await pRes.json())

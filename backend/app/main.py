@@ -11,10 +11,15 @@ app = FastAPI(title="ARP Motors API")
 # 🔹 Add this line: It creates tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
-# Setup CORS
+# Add your Vercel URL to this list
+origins = [
+    "http://localhost:3000",
+    "https://rental-motors-website.onrender.com", # Paste your actual Vercel URL here
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

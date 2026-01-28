@@ -20,6 +20,8 @@ export default function AdminGalleryPage() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -27,8 +29,8 @@ export default function AdminGalleryPage() {
   const fetchData = async () => {
     try {
         const [imgRes, metaRes] = await Promise.all([
-            fetch("http://localhost:8000/admin/gallery/"),
-            fetch("http://localhost:8000/admin/meta/gallery")
+            fetch(`${apiUrl}/admin/gallery/`),
+            fetch(`${apiUrl}/admin/meta/gallery`)
         ]);
         if (imgRes.ok) setImages(await imgRes.json());
         if (metaRes.ok) setMetaData(await metaRes.json());
@@ -44,7 +46,7 @@ export default function AdminGalleryPage() {
     setLoading(true);
     const data = new FormData(); data.append("image", file);
     try {
-      const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+      const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
       });
       const result = await res.json();
@@ -62,7 +64,7 @@ export default function AdminGalleryPage() {
     if (newImage.desc) formData.append("description", newImage.desc);
 
     try {
-      const res = await fetch("http://localhost:8000/admin/gallery/upload", {
+      const res = await fetch(`${apiUrl}/admin/gallery/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -77,7 +79,7 @@ export default function AdminGalleryPage() {
   const handleSaveMeta = async () => {
     setLoading(true);
     try {
-      await fetch("http://localhost:8000/admin/meta/gallery", {
+      await fetch(`${apiUrl}/admin/meta/gallery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(metaData),
@@ -88,7 +90,7 @@ export default function AdminGalleryPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Permanently remove this photo?")) return;
-    await fetch(`http://localhost:8000/admin/gallery/${id}`, {
+    await fetch(`${apiUrl}/admin/gallery/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     });

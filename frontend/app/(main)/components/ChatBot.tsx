@@ -10,11 +10,13 @@ export default function Chatbot() {
   const [chatHistory, setChatHistory] = useState([{ role: "bot", text: "Hello! 👋 I'm your assistant. How can I help you today?" }])
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     // Show tooltip after 1 second delay on initial load
     const helpTimer = setTimeout(() => setShowHelp(true), 1000)
     
-    fetch("http://localhost:8000/admin/chatbot/options")
+    fetch(`${apiUrl}/admin/chatbot/options`)
       .then(res => res.json())
       .then(data => setOptions(data))
       .catch(err => console.error("Chatbot fetch error:", err))

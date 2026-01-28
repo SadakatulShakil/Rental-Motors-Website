@@ -26,6 +26,7 @@ export default function AdminContactPage() {
   const [editField, setEditField] = useState({ label: "", field_type: "" });
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetchData();
@@ -34,9 +35,9 @@ export default function AdminContactPage() {
   const fetchData = async () => {
     try {
         const [iRes, mRes, fRes] = await Promise.all([
-            fetch("http://localhost:8000/admin/contact/info"),
-            fetch("http://localhost:8000/admin/meta/contact"),
-            fetch("http://localhost:8000/admin/contact/fields")
+            fetch(`${apiUrl}/admin/contact/info`),
+            fetch(`${apiUrl}/admin/meta/contact`),
+            fetch(`${apiUrl}/admin/contact/fields`)
         ]);
         if (iRes.ok) setInfo(await iRes.json());
         if (mRes.ok) setMetaData(await mRes.json());
@@ -53,7 +54,7 @@ export default function AdminContactPage() {
     setLoading(true);
     const data = new FormData(); data.append("image", file);
     try {
-      const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+      const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
       });
       const result = await res.json();
@@ -67,12 +68,12 @@ export default function AdminContactPage() {
     setLoading(true);
     try {
         await Promise.all([
-            fetch("http://localhost:8000/admin/meta/contact", {
+            fetch(`${apiUrl}/admin/meta/contact`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(metaData),
             }),
-            fetch("http://localhost:8000/admin/contact/info", {
+            fetch(`${apiUrl}/admin/contact/info`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(info)
@@ -88,7 +89,7 @@ export default function AdminContactPage() {
 
   const handleAddField = async () => {
     if (!newField.label) return alert("Label is required");
-    await fetch("http://localhost:8000/admin/contact/fields", {
+    await fetch(`${apiUrl}/admin/contact/fields`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(newField)
@@ -100,7 +101,7 @@ export default function AdminContactPage() {
   const handleUpdateField = async (id: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/admin/contact/fields/${id}`, {
+      const res = await fetch(`${apiUrl}/admin/contact/fields/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(editField)
@@ -116,7 +117,7 @@ export default function AdminContactPage() {
 
   const handleDeleteField = async (id: number) => {
     if (!confirm("Delete this field?")) return;
-    await fetch(`http://localhost:8000/admin/contact/fields/${id}`, { 
+    await fetch(`${apiUrl}/admin/contact/fields/${id}`, { 
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
     });

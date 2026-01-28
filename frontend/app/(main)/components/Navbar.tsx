@@ -12,9 +12,11 @@ export default function Navbar() {
 
   const isActive = (path: string) => pathname === path
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     // Fetch settings to get the dynamic logo_url
-    fetch("http://localhost:8000/admin/footer")
+    fetch(`${apiUrl}/admin/footer`)
       .then(res => res.json())
       .then(data => setLogoUrl(data.logo_url))
       .catch(err => console.error("Logo fetch error:", err))

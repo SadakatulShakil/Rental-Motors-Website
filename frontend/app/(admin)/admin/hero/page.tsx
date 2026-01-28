@@ -16,9 +16,11 @@ export default function AdminHeroPage() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const fetchData = async () => {
     try {
-      const res = await fetch("http://localhost:8000/admin/hero/slides")
+      const res = await fetch(`${apiUrl}/admin/hero/slides`)
       if (res.ok) setSlides(await res.json())
     } finally {
       setFetching(false)
@@ -31,7 +33,7 @@ export default function AdminHeroPage() {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true)
     const data = new FormData(); data.append("image", file)
-    const res = await fetch("http://localhost:8000/admin/about/upload-image", { 
+    const res = await fetch(`{}/admin/about/upload-image`, { 
         method: "POST", headers: { Authorization: `Bearer ${token}`}, body: data 
     })
     const result = await res.json()
@@ -43,8 +45,8 @@ export default function AdminHeroPage() {
     if (!newSlide.title || !newSlide.image_url) return alert("Title and Image are required")
     setLoading(true)
     const url = editingId 
-        ? `http://localhost:8000/admin/hero/slides/${editingId}` 
-        : "http://localhost:8000/admin/hero/slides";
+        ? `${apiUrl}/admin/hero/slides/${editingId}` 
+        : `${apiUrl}/admin/hero/slides`;
     
     const method = editingId ? "PUT" : "POST";
 
@@ -75,7 +77,7 @@ export default function AdminHeroPage() {
 
   const handleDeleteSlide = async (id: number) => {
     if (!confirm("Remove this slide from the homepage?")) return;
-    await fetch(`http://localhost:8000/admin/hero/slides/${id}`, {
+    await fetch(`${apiUrl}/admin/hero/slides/${id}`, {
       method: "DELETE", headers: { Authorization: `Bearer ${token}` }
     });
     fetchData()

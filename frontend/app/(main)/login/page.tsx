@@ -11,6 +11,8 @@ export default function AdminLogin() {
   const [error, setError] = useState("")
   const [checkingAuth, setCheckingAuth] = useState(true)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   // ✅ Auto redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("admin_token")
@@ -31,7 +33,7 @@ export default function AdminLogin() {
         password
       }).toString()
 
-      const res = await fetch("http://localhost:8000/admin/login", {
+      const res = await fetch(`${apiUrl}/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body

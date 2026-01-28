@@ -8,13 +8,15 @@ export default function AboutSection() {
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchAllAboutData = async () => {
       try {
         // 🔹 Fetch from both the Universal Meta and the Specific About Content
         const [metaRes, contentRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/meta/about"),
-          fetch("http://localhost:8000/admin/about")
+          fetch(`${apiUrl}/admin/meta/about`),
+          fetch(`${apiUrl}/admin/about`)
         ]);
 
         if (metaRes.ok) setMeta(await metaRes.json());

@@ -7,8 +7,10 @@ export default function IncludeHeader() {
   const [showForm, setShowForm] = useState(false)
   const [meta, setMeta] = useState<any>(null)
   
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
-    fetch("http://localhost:8000/admin/meta/include")
+    fetch(`${apiUrl}/admin/meta/include`)
       .then(res => res.json())
       .then(data => setMeta(data))
       .catch(err => console.error("Error fetching meta:", err))

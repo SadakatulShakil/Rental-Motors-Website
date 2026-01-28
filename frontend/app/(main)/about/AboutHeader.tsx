@@ -8,13 +8,14 @@ export default function AboutHeader() {
   const [meta, setMeta] = useState<any>(null)
   const [motorcycleOptions, setMotorcycleOptions] = useState<string[]>([])
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [metaRes, bikesRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/meta/about"),
-          fetch("http://localhost:8000/admin/bikes")
+          fetch('${apiUrl}/admin/meta/about'),
+          fetch('${apiUrl}/admin/bikes')
         ]);
         if (metaRes.ok) setMeta(await metaRes.json());
         if (bikesRes.ok) {

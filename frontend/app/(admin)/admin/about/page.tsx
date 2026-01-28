@@ -11,6 +11,8 @@ export default function AdminAboutPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   const [metaData, setMetaData] = useState({
     header_title: "", header_description: "", header_image: "",
     page_title: "", page_subtitle: ""
@@ -30,8 +32,8 @@ export default function AdminAboutPage() {
   const fetchData = async () => {
     try {
       const [mRes, cRes] = await Promise.all([
-        fetch("http://localhost:8000/admin/meta/about"),
-        fetch("http://localhost:8000/admin/about")
+        fetch(`${apiUrl}/admin/meta/about`),
+        fetch(`${apiUrl}/admin/about`)
       ]);
       if (mRes.ok) setMetaData(await mRes.json());
       if (cRes.ok) {
@@ -52,7 +54,7 @@ export default function AdminAboutPage() {
     const data = new FormData(); data.append("image", file);
     
     try {
-      const res = await fetch("http://localhost:8000/admin/about/upload-image", {
+      const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
         method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
       });
       const result = await res.json();
@@ -67,12 +69,12 @@ export default function AdminAboutPage() {
     setSaving(true);
     try {
       await Promise.all([
-        fetch("http://localhost:8000/admin/meta/about", {
+        fetch(`${apiUrl}/admin/meta/about`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(metaData),
         }),
-        fetch("http://localhost:8000/admin/about", {
+        fetch(`${apiUrl}/admin/about`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(contentData),

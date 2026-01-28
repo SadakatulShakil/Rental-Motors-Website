@@ -14,11 +14,13 @@ export default function MotorcycleList({ limit, showViewMore = false }: any) {
   const [selectedBike, setSelectedBike] = useState("")
   const [activeCalc, setActiveCalc] = useState<string | null>(null) // Track which bike's calc is open
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchData = async () => {
       const [bRes, mRes] = await Promise.all([
-        fetch("http://localhost:8000/admin/bikes"),
-        fetch("http://localhost:8000/admin/meta/bikes")
+        fetch(`${apiUrl}/admin/bikes`),
+        fetch(`${apiUrl}/admin/meta/bikes`)
       ])
       if (bRes.ok) setBikes(await bRes.json())
       if (mRes.ok) setMeta(await mRes.json())

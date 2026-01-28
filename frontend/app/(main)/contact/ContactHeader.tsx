@@ -9,13 +9,15 @@ export default function ContactHeader() {
   const [contactInfo, setContactInfo] = useState<any>(null)
   const [motorcycleOptions, setMotorcycleOptions] = useState<string[]>([])
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [metaRes, contactRes, bikesRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/meta/contact"),
-          fetch("http://localhost:8000/admin/contact/info"),  
-          fetch("http://localhost:8000/admin/bikes")
+          fetch(`${apiUrl}/admin/meta/contact`),
+          fetch(`${apiUrl}/admin/contact/info`),  
+          fetch(`${apiUrl}/admin/bikes`)
         ]);
         if (metaRes.ok) setMeta(await metaRes.json());
         if (contactRes.ok) setContactInfo(await contactRes.json())

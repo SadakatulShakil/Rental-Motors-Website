@@ -53,6 +53,7 @@ export default function BookingForm({ motorcycleOptions = [], onClose, initialBi
       else setLicenseBack(e.target.files[0]);
     }
   };
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -64,7 +65,7 @@ export default function BookingForm({ motorcycleOptions = [], onClose, initialBi
     if (licenseBack) data.append("license_back", licenseBack);
 
     try {
-      const res = await fetch("http://localhost:8000/admin/bookings/send-mail", {
+      const res = await fetch(`${apiUrl}/admin/bookings/send-mail`, {
         method: "POST",
         body: data,
       });

@@ -11,12 +11,14 @@ export default function GallerySection({ limit, showViewMore = false }: Props) {
   const [images, setImages] = useState<any[]>([])
   const [meta, setMeta] = useState<any>(null)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [imgRes, metaRes] = await Promise.all([
-          fetch("http://localhost:8000/admin/gallery/"),
-          fetch("http://localhost:8000/admin/meta/gallery")
+          fetch(`${apiUrl}/admin/gallery/`),
+          fetch(`${apiUrl}/admin/meta/gallery`)
         ])
         if (imgRes.ok) setImages(await imgRes.json())
         if (metaRes.ok) setMeta(await metaRes.json())

@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react'
 export default function WhatsAppFloating() {
   const [contactInfo, setContactInfo] = useState<any>(null)
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
   useEffect(() => {
-    fetch("http://localhost:8000/admin/contact/info")
+    fetch(`${apiUrl}/admin/contact/info"`)
       .then(res => res.json())
       .then(data => setContactInfo(data))
       .catch(err => console.error("WhatsApp Fetch Error:", err))
@@ -39,9 +41,9 @@ export default function WhatsAppFloating() {
 
 export function WhatsAppMobileBtn() {
   const [contactInfo, setContactInfo] = useState<any>(null)
-
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   useEffect(() => {
-    fetch("http://localhost:8000/admin/contact/info")
+    fetch(`${apiUrl}/admin/contact/info`)
       .then(res => res.json())
       .then(data => setContactInfo(data))
       .catch(err => console.error("WhatsApp Fetch Error:", err))

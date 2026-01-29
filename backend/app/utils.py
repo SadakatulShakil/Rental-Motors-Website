@@ -1,7 +1,7 @@
 import os
 import cloudinary
 import cloudinary.uploader
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone # 🛡️ Added timezone
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -12,11 +12,14 @@ SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key-change-this")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+# --- AUTH CONFIGURATION ---
+# This was missing! It tells FastAPI where to look for the token.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/login")
+
 # Setup Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- Cloudinary Configuration ---
-# These variables come from your Render Environment settings
 cloudinary.config(
     cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key = os.getenv("CLOUDINARY_API_KEY"),
@@ -36,26 +39,23 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# --- Image Upload Function (NEW) ---
+# --- Image Upload Function ---
 def upload_image_to_cloud(file):
-    """
-    Takes a file object and returns the permanent URL from Cloudinary.
-    """
     try:
-        upload_result = cloudinary.uploader.upload(file)
+        # We use resource_type="auto" to handle images and potentially videos/files
+        upload_result = cloudinary.uploader.upload(file, resource_type="auto")
         return upload_result.get("secure_url")
     except Exception as e:
         print(f"Cloudinary Upload Error: {e}")
         return None
     
-    
-# This is your "Security Guard" function
+# --- Security Guard Function ---
 async def get_current_admin(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -63,14 +63,13 @@ async def get_current_admin(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # 1. Decode the token
+        # Decode the token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         
         if username is None:
             raise credentials_exception
             
-        # You can also check if the user exists in the DB here if you want extra security
         return {"username": username}
         
     except JWTError:

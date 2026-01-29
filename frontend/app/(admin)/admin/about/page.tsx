@@ -49,17 +49,35 @@ export default function AdminAboutPage() {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'header' | 'hero') => {
-    const file = e.target.files?.[0]; if (!file) return;
+    const file = e.target.files?.[0]; 
+    if (!file) return;
+  
     setUploading(true);
-    const data = new FormData(); data.append("image", file);
+    const data = new FormData(); 
+    data.append("file", file); // Ensure key matches backend (usually "file")
     
     try {
       const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
+        method: "POST", 
+        headers: { 
+          Authorization: `Bearer ${token}` 
+          // Note: Do NOT set Content-Type header when sending FormData
+        }, 
+        body: data,
       });
+  
+      if (!res.ok) throw new Error("Upload failed");
+  
       const result = await res.json();
-      if (target === 'header') setMetaData({ ...metaData, header_image: result.url });
-      else setContentData({ ...contentData, hero_image: result.url });
+      // The 'result.url' comes back from your Cloudinary util
+      if (target === 'header') {
+        setMetaData({ ...metaData, header_image: result.url });
+      } else {
+        setContentData({ ...contentData, hero_image: result.url });
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Image upload failed.");
     } finally {
       setUploading(false);
     }

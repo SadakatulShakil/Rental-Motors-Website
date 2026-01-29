@@ -5,8 +5,9 @@ import BikePriceCalculator from "../../components/BikePriceCalculator";
 import BookNowButton from "../../components/BookingNowButton";
 
 export default async function BikeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const { slug } = await params;
-  const res = await fetch(`http://localhost:8000/admin/bikes/${slug}`, { cache: 'no-store' });
+  const res = await fetch(`${apiUrl}/admin/bikes/${slug}`, { cache: 'no-store' });
   if (!res.ok) return <div className="p-20 text-center font-black uppercase">Bike not found</div>;
   const bike = await res.json();
 

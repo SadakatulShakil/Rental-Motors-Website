@@ -14,8 +14,8 @@ export default function AboutHeader() {
     const fetchData = async () => {
       try {
         const [metaRes, bikesRes] = await Promise.all([
-          fetch('${apiUrl}/admin/meta/about'),
-          fetch('${apiUrl}/admin/bikes')
+          fetch(`${apiUrl}/admin/meta/about`),
+          fetch(`${apiUrl}/admin/bikes`)
         ]);
         if (metaRes.ok) setMeta(await metaRes.json());
         if (bikesRes.ok) {

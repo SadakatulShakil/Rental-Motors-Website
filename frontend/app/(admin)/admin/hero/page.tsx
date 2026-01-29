@@ -30,16 +30,32 @@ export default function AdminHeroPage() {
   useEffect(() => { fetchData() }, [])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    setUploading(true)
-    const data = new FormData(); data.append("image", file)
-    const res = await fetch(`{}/admin/about/upload-image`, { 
-        method: "POST", headers: { Authorization: `Bearer ${token}`}, body: data 
-    })
-    const result = await res.json()
-    setNewSlide({ ...newSlide, image_url: result.url })
-    setUploading(false)
-  }
+    const file = e.target.files?.[0]; 
+    if (!file) return;
+    
+    setUploading(true);
+    const data = new FormData(); 
+    data.append("file", file); // 🔹 Must be "file" to match backend
+  
+    try {
+      // 🔹 Use the correct apiUrl and the about-upload route we already verified
+      const res = await fetch(`${apiUrl}/admin/about/upload-image`, { 
+          method: "POST", 
+          headers: { Authorization: `Bearer ${token}`}, 
+          body: data 
+      });
+      
+      if (!res.ok) throw new Error("Upload failed");
+      
+      const result = await res.json();
+      setNewSlide({ ...newSlide, image_url: result.url });
+    } catch (err) {
+      alert("Upload failed. Check console.");
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!newSlide.title || !newSlide.image_url) return alert("Title and Image are required")

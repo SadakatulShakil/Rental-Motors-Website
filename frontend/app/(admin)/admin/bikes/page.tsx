@@ -51,15 +51,26 @@ export default function AdminBikesPage() {
 
   const handleImageUpload = async (file: File, isHeader: boolean) => {
     setUploading(true)
-    const data = new FormData(); data.append("image", file)
-    const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
-      method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
-    })
-    const result = await res.json()
-    if (isHeader) setMetaData({ ...metaData, header_image: result.url })
-    else setFormData({ ...formData, image: result.url })
-    setUploading(false)
-  }
+    const data = new FormData(); 
+    data.append("file", file); // 🔹 Fixed key to match backend
+
+    try {
+        const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
+            method: "POST", 
+            headers: { 
+                Authorization: `Bearer ${token}` // 🛡️ Required for protected route
+            }, 
+            body: data,
+        })
+        const result = await res.json()
+        if (isHeader) setMetaData({ ...metaData, header_image: result.url })
+        else setFormData({ ...formData, image: result.url })
+    } catch (err) {
+        console.error("Upload error", err)
+    } finally {
+        setUploading(false)
+    }
+}
 
   const handleSaveMeta = async () => {
     setLoading(true)

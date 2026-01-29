@@ -44,13 +44,22 @@ export default function MotorcycleList({ limit, showViewMore = false }: any) {
         {bikesToShow.map((bike) => (
           <div key={bike.slug} className="group flex flex-col bg-slate-50 rounded-[2.5rem] border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-500">
             {/* Image Section */}
-            <Link href={`/bikes/${bike.slug}`} className="relative h-72 w-full overflow-hidden">
-                <Image src={bike.image} alt={bike.name} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-6 left-6 bg-white/90 backdrop-blur px-4 py-1 rounded-full text-[10px] font-black uppercase italic italic shadow-xl">
-                    {bike.type || "Sports"}
-                </div>
-            </Link>
-
+            <Link href={`/bikes/${bike.slug}`} className="relative h-72 w-full overflow-hidden block">
+    <Image 
+      // Fallback to a placeholder if bike.image is missing
+      src={bike.image || "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"} 
+      alt={bike.name} 
+      fill 
+      // Remove unoptimized to allow Next.js to cache and optimize
+      // unoptimized 
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      className="object-cover group-hover:scale-110 transition-transform duration-700"
+      priority={false}
+    />
+    <div className="absolute top-6 left-6 bg-white/90 backdrop-blur px-4 py-1 rounded-full text-[10px] font-black uppercase italic shadow-xl z-10">
+        {bike.type || "Sports"}
+    </div>
+</Link>
             {/* Content Section */}
             <div className="p-10 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-4">

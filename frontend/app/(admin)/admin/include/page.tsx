@@ -48,25 +48,35 @@ export default function AdminIncludedPage() {
 
   // --- FEATURE ACTIONS ---
   const handleSaveFeature = async () => {
-    if (!newFeat.title) return alert("Title is required")
-    setLoading(true)
-    const method = editFeatId ? "PUT" : "POST"
-    const url = editFeatId 
-      ? `${apiUrl}/admin/include/features/${editFeatId}`
-      : `${apiUrl}/admin/include/features`
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(newFeat)
-    })
-    if (res.ok) {
-      setNewFeat({ icon_name: "FaMotorcycle", title: "", subtitle: "" })
-      setEditFeatId(null)
-      fetchData()
+    if (!newFeat.title) return alert("Title is required");
+    setLoading(true);
+    try {
+      const method = editFeatId ? "PUT" : "POST";
+      const url = editFeatId 
+        ? `${apiUrl}/admin/include/features/${editFeatId}`
+        : `${apiUrl}/admin/include/features`;
+  
+      const res = await fetch(url, {
+        method,
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(newFeat)
+      });
+      
+      if (res.ok) {
+        setNewFeat({ icon_name: "FaMotorcycle", title: "", subtitle: "" });
+        setEditFeatId(null);
+        fetchData();
+      } else {
+        const errData = await res.json();
+        alert(`Error: ${errData.detail || "Failed to save"}`);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }
+  };
 
   const startEditFeature = (f: any) => {
     setEditFeatId(f.id)
@@ -122,16 +132,27 @@ export default function AdminIncludedPage() {
 
   // --- META ACTIONS ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    setUploading(true)
-    const data = new FormData(); data.append("image", file)
-    const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
-      method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
-    })
-    const result = await res.json()
-    setMetaData({ ...metaData, header_image: result.url })
-    setUploading(false)
-  }
+    const file = e.target.files?.[0]; 
+    if (!file) return;
+    setUploading(true);
+    
+    const data = new FormData(); 
+    data.append("file", file); // 🔹 MUST BE "file"
+  
+    try {
+      const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
+        method: "POST", 
+        headers: { Authorization: `Bearer ${token}` }, // 🛡️ Ensure token is sent
+        body: data,
+      });
+      const result = await res.json();
+      setMetaData({ ...metaData, header_image: result.url });
+    } catch (err) {
+      console.error("Upload failed", err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSaveMeta = async () => {
     setLoading(true)

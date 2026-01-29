@@ -50,12 +50,16 @@ export default function AdminContactPage() {
   // --- Handlers ---
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
+    const file = e.target.files?.[0]; 
+    if (!file) return;
     setLoading(true);
-    const data = new FormData(); data.append("image", file);
+    const data = new FormData(); 
+    data.append("file", file); // 🔹 Key must be "file"
     try {
       const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
+        method: "POST", 
+        headers: { Authorization: `Bearer ${token}` }, 
+        body: data,
       });
       const result = await res.json();
       setMetaData({ ...metaData, header_image: result.url });
@@ -98,22 +102,25 @@ export default function AdminContactPage() {
     fetchData();
   };
 
-  const handleUpdateField = async (id: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${apiUrl}/admin/contact/fields/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(editField)
-      });
-      if (res.ok) {
-        setEditingId(null);
-        fetchData();
-      }
-    } finally {
-      setLoading(false);
+const handleUpdateField = async (id: number) => {
+  setLoading(true);
+  try {
+    const res = await fetch(`${apiUrl}/admin/contact/fields/${id}`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json", 
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify(editField)
+    });
+    if (res.ok) {
+      setEditingId(null);
+      fetchData();
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDeleteField = async (id: number) => {
     if (!confirm("Delete this field?")) return;

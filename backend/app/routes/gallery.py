@@ -1,69 +1,53 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-import shutil
-import os
-import uuid
-
-from ..database import get_db, engine
+from ..database import get_db
 from ..models.GalleryModel import Gallery
-from ..schemas.AdminSchemas import GalleryCreate, GalleryOut 
+from ..schemas.AdminSchemas import GalleryOut 
+from ..utils import get_current_admin, upload_image_to_cloud # 🛡️ Use your cloud helper
 
 router = APIRouter(prefix="/admin/gallery", tags=["Gallery"])
-
-# Ensure table exists
-Gallery.metadata.create_all(bind=engine)
 
 @router.get("/", response_model=List[GalleryOut])
 def get_gallery(db: Session = Depends(get_db)):
     return db.query(Gallery).all()
 
-@router.post("/upload")
+@router.post("/upload", response_model=GalleryOut, status_code=status.HTTP_201_CREATED)
 async def upload_gallery_image(
     description: str = None, 
-    image: UploadFile = File(...), 
-    db: Session = Depends(get_db)
+    file: UploadFile = File(...), # 🔹 Changed parameter name to 'file' for utility consistency
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin) # 🔒 Protected
 ):
-    upload_dir = "static/uploads/gallery"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Create unique filename to avoid overwriting
-    file_extension = os.path.splitext(image.filename)[1]
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(upload_dir, unique_filename)
-    
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
+        # 1. Upload to Cloudinary instead of local folder
+        image_url = upload_image_to_cloud(file.file)
         
-        url = f"http://localhost:8000/static/uploads/gallery/{unique_filename}"
+        if not image_url:
+            raise HTTPException(status_code=500, detail="Cloudinary upload failed")
         
-        # Save to database
-        new_item = Gallery(image=url, description=description)
+        # 2. Save the Cloudinary URL to the database
+        new_item = Gallery(image=image_url, description=description)
         db.add(new_item)
         db.commit()
         db.refresh(new_item)
         
         return new_item
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Gallery upload failed: {str(e)}")
 
 @router.delete("/{image_id}")
-def delete_gallery_image(image_id: int, db: Session = Depends(get_db)):
+def delete_gallery_image(
+    image_id: int, 
+    db: Session = Depends(get_db),
+    admin: dict = Depends(get_current_admin) # 🔒 Protected
+):
     item = db.query(Gallery).filter(Gallery.id == image_id).first()
     if not item:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise HTTPException(status_code=404, detail="Image not found in gallery")
     
-    # Optional: Delete the physical file from storage
-    try:
-        # Extract filename from URL
-        filename = item.image.split("/")[-1]
-        file_path = os.path.join("static/uploads/gallery", filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    except Exception as e:
-        print(f"File delete error: {e}")
-
+    # We delete from DB. (Optional: You could also call cloudinary.uploader.destroy here)
     db.delete(item)
     db.commit()
-    return {"message": "Image deleted successfully"}
+    return {"message": "Gallery item removed"}

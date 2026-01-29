@@ -42,12 +42,18 @@ export default function AdminGalleryPage() {
   // --- Handlers ---
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
+    const file = e.target.files?.[0]; 
+    if (!file) return;
     setLoading(true);
-    const data = new FormData(); data.append("image", file);
+    
+    const data = new FormData(); 
+    data.append("file", file); // 🔹 Use "file" consistently
+  
     try {
       const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
-        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: data,
+        method: "POST", 
+        headers: { Authorization: `Bearer ${token}` }, 
+        body: data,
       });
       const result = await res.json();
       setMetaData({ ...metaData, header_image: result.url });
@@ -59,21 +65,32 @@ export default function AdminGalleryPage() {
   const handleUploadGalleryItem = async () => {
     if (!newImage.file) return alert("Select an image first");
     setLoading(true);
+    
     const formData = new FormData();
-    formData.append("image", newImage.file);
+    formData.append("file", newImage.file); // 🔹 MUST BE "file" to match backend parameter
     if (newImage.desc) formData.append("description", newImage.desc);
-
+  
     try {
       const res = await fetch(`${apiUrl}/admin/gallery/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}` // 🛡️ Ensure token is sent
+        },
         body: formData
       });
+  
       if (res.ok) {
         setNewImage({ file: null, desc: "" });
         fetchData();
+      } else {
+        const error = await res.json();
+        alert(`Upload Error: ${error.detail}`);
       }
-    } finally { setLoading(false); }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveMeta = async () => {

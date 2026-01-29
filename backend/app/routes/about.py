@@ -62,7 +62,7 @@ def update_about(data: AboutUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/about/upload-image")
-async def upload_image(image: UploadFile = File(...)):
+async def upload_image(file: UploadFile = File(...)):
     try:
         # 1. Send the file directly to Cloudinary
         # We pass image.file (the actual data stream) to our utility

@@ -66,7 +66,7 @@ async def upload_image(file: UploadFile = File(...)):
     try:
         # 1. Send the file directly to Cloudinary
         # We pass image.file (the actual data stream) to our utility
-        cloud_url = upload_image_to_cloud(image.file)
+        cloud_url = upload_image_to_cloud(file.file)
         
         # 2. Check if the upload was successful
         if not cloud_url:

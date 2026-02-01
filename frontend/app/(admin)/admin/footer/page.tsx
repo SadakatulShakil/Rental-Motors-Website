@@ -42,18 +42,32 @@ export default function FooterAdmin() {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append("file", file);
-
+  
     setLoading(true);
     try {
       const res = await fetch(`${apiUrl}/admin/footer/upload-logo`, {
         method: "PUT",
+        headers: {
+          // the browser does it automatically with the boundary.
+          "Authorization": `Bearer ${localStorage.getItem("admin_token")}` 
+        },
         body: formData,
       });
+  
+      if (!res.ok) throw new Error("Upload failed");
+  
       const data = await res.json();
-      setSettings({ ...settings, logo_url: data.logo_url });
-      alert("✅ Logo uploaded to server! Remember to click SAVE CHANGES.");
+      
+      // This triggers the re-render so the logo shows up in the preview box
+      setSettings((prev: any) => ({ 
+        ...prev, 
+        logo_url: data.logo_url 
+      }));
+  
+      alert("✅ Logo uploaded! Preview updated. Now click 'SAVE CHANGES' to finish.");
     } catch (err) {
-      alert("❌ Upload failed");
+      console.error(err);
+      alert("❌ Upload failed. Check console for details.");
     } finally {
       setLoading(false);
     }

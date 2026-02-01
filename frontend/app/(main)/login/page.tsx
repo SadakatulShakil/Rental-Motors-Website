@@ -75,7 +75,7 @@ export default function AdminLogin() {
               <ShieldCheck className="text-white" size={38} />
             </div>
             <h1 className="text-4xl font-black uppercase italic tracking-tighter text-white">
-              Ska <span className="text-blue-500 text-shadow-glow">Motors</span>
+              ARP <span className="text-blue-500 text-shadow-glow">Motors</span>
             </h1>
             <p className="text-[9px] font-black text-blue-200/60 uppercase tracking-[0.4em] mt-3">
               Secure Administrative Access

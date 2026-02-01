@@ -22,18 +22,19 @@ def get_footer_settings(db: Session = Depends(get_db)):
 
 @router.put("/footer/upload-logo")
 async def upload_image(file: UploadFile = File(...)):
-    upload_dir = "static/uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-    file_path = os.path.join(upload_dir, file.filename)
-    
     try:
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # 2. Upload directly to Cloudinary
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            folder="ska_motors/branding",
+            public_id=f"logo_{file.filename.split('.')[0]}"
+        )
         
-        url = f"http://localhost:8000/static/uploads/{file.filename}"
-        return {"logo_url": url} 
+        # 3. Return the secure Cloudinary URL
+        return {"logo_url": upload_result.get("secure_url")} 
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cloudinary Upload failed: {str(e)}")
     
 
 @router.put("/footer", response_model=FooterSettingsRead)

@@ -1,13 +1,15 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation" // 🔹 Added for redirection
 import { 
   Bike, Image as ImageIcon, Layers, Users, 
   ChevronRight, ArrowUpRight, Activity, 
-  PlusCircle, Settings, Phone, Loader2
+  Phone, Loader2
 } from "lucide-react"
 import AdminGuard from "../components/AdminGuard"
 
 export default function AdminDashboard() {
+  const router = useRouter(); // 🔹 Initialize router
   const [stats, setStats] = useState({
     total_bikes: 0,
     gallery_images: 0,
@@ -18,29 +20,62 @@ export default function AdminDashboard() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+  // 🔹 Helper to handle logout
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("admin_token");
+    router.push("/admin/login");
+  }, [router]);
+
   useEffect(() => {
     const fetchStats = async () => {
+      const token = localStorage.getItem("admin_token");
+      
+      // 1. Immediate check if token even exists
+      if (!token) {
+        handleLogout();
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("admin_token")
         const res = await fetch(`${apiUrl}/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        });
+
+        // 2. 🔹 The Auto-Logout Logic
+        // If the backend returns 401, the token is invalid or expired
+        if (res.status === 401) {
+          handleLogout();
+          return;
+        }
+
         if (res.ok) {
-          const data = await res.json()
-          setStats(data)
+          const data = await res.json();
+          setStats(data);
         }
       } catch (err) {
-        console.error("Failed to fetch dashboard stats:", err)
+        console.error("Dashboard Sync Error:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchStats()
-  }, [])
+    };
+
+    fetchStats();
+  }, [apiUrl, handleLogout]);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-blue-600" size={40} />
+          <p className="text-[10px] font-black uppercase italic tracking-widest text-slate-400">Verifying Credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminGuard>
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
         
         {/* WELCOME HEADER */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -52,45 +87,26 @@ export default function AdminDashboard() {
               Real-time Fleet & Content Analytics
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-2xl border border-blue-100 font-black italic text-xs uppercase">
-            <Activity size={14} className="animate-pulse" /> System Operational
+          <div className="flex items-center gap-4">
+             {/* 🔹 Added a Manual Logout for testing */}
+             <button 
+               onClick={handleLogout}
+               className="text-[10px] font-black uppercase text-red-500 hover:underline"
+             >
+               Force Logout
+             </button>
+             <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-2xl border border-blue-100 font-black italic text-xs uppercase">
+               <Activity size={14} className="animate-pulse" /> System Operational
+             </div>
           </div>
         </header>
 
         {/* STATS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard 
-            title="Active Fleet" 
-            value={stats.total_bikes} 
-            loading={loading} 
-            icon={<Bike size={20}/>}
-            color="text-blue-600"
-            bg="bg-blue-50"
-          />
-          <StatCard 
-            title="Gallery Assets" 
-            value={stats.gallery_images} 
-            loading={loading} 
-            icon={<ImageIcon size={20}/>}
-            color="text-red-600"
-            bg="bg-red-50"
-          />
-          <StatCard 
-            title="Slider Hero" 
-            value={stats.hero_slides} 
-            loading={loading} 
-            icon={<Layers size={20}/>}
-            color="text-amber-600"
-            bg="bg-amber-50"
-          />
-          <StatCard 
-            title="Staff Access" 
-            value={stats.total_admins} 
-            loading={loading} 
-            icon={<Users size={20}/>}
-            color="text-slate-900"
-            bg="bg-slate-100"
-          />
+          <StatCard title="Active Fleet" value={stats.total_bikes} loading={loading} icon={<Bike size={20}/>} color="text-blue-600" bg="bg-blue-50" />
+          <StatCard title="Gallery Assets" value={stats.gallery_images} loading={loading} icon={<ImageIcon size={20}/>} color="text-red-600" bg="bg-red-50" />
+          <StatCard title="Slider Hero" value={stats.hero_slides} loading={loading} icon={<Layers size={20}/>} color="text-amber-600" bg="bg-amber-50" />
+          <StatCard title="Staff Access" value={stats.total_admins} loading={loading} icon={<Users size={20}/>} color="text-slate-900" bg="bg-slate-100" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -100,40 +116,20 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-black uppercase italic tracking-widest text-slate-900">Rapid Management</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ActionCard 
-                title="Fleet Management" 
-                subtitle="Add, remove or edit motorcycle listings"
-                href="/admin/bikes" 
-                icon={<Bike />}
-              />
-              <ActionCard 
-                title="Media Gallery" 
-                subtitle="Upload and curate brand photography"
-                href="/admin/gallery" 
-                icon={<ImageIcon />}
-              />
-              <ActionCard 
-                title="Front-Page Hero" 
-                subtitle="Configure the main landing slider"
-                href="/admin/hero" 
-                icon={<Layers />}
-              />
-              <ActionCard 
-                title="Contact & Meta" 
-                subtitle="Update phone, email, and SEO titles"
-                href="/admin/contact" 
-                icon={<Phone />}
-              />
+              <ActionCard title="Fleet Management" subtitle="Add, remove or edit motorcycle listings" href="/admin/bikes" icon={<Bike />} />
+              <ActionCard title="Media Gallery" subtitle="Upload and curate brand photography" href="/admin/gallery" icon={<ImageIcon />} />
+              <ActionCard title="Front-Page Hero" subtitle="Configure the main landing slider" href="/admin/hero" icon={<Layers />} />
+              <ActionCard title="Contact & Meta" subtitle="Update phone, email, and SEO titles" href="/admin/contact" icon={<Phone />} />
             </div>
           </div>
 
-          {/* SIDEBAR / SYSTEM INFO */}
+          {/* SYSTEM INFO */}
           <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white space-y-6 shadow-2xl shadow-slate-900/30">
             <h3 className="text-xs font-black uppercase italic tracking-widest text-slate-500">System Information</h3>
             <div className="space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3 text-[11px] font-bold">
-                    <span className="text-slate-500 uppercase">Framework</span>
-                    <span className="italic">Next.js 14 (App Router)</span>
+                    <span className="text-slate-500 uppercase">Status</span>
+                    <span className="text-green-400 italic font-black uppercase tracking-tighter">Session Active</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3 text-[11px] font-bold">
                     <span className="text-slate-500 uppercase">API Status</span>
@@ -141,7 +137,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3 text-[11px] font-bold">
                     <span className="text-slate-500 uppercase">Database</span>
-                    <span className="italic">PostgreSQL (Connected)</span>
+                    <span className="italic">PostgreSQL</span>
                 </div>
             </div>
             <div className="pt-4">

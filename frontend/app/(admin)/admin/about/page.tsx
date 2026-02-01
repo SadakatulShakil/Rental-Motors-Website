@@ -54,30 +54,31 @@ export default function AdminAboutPage() {
   
     setUploading(true);
     const data = new FormData(); 
-    data.append("file", file); // Ensure key matches backend (usually "file")
+    data.append("file", file); 
     
     try {
       const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
         method: "POST", 
-        headers: { 
-          Authorization: `Bearer ${token}` 
-          // Note: Do NOT set Content-Type header when sending FormData
-        }, 
+        headers: { Authorization: `Bearer ${token}` }, 
         body: data,
       });
   
       if (!res.ok) throw new Error("Upload failed");
   
       const result = await res.json();
-      // The 'result.url' comes back from your Cloudinary util
+      
       if (target === 'header') {
         setMetaData({ ...metaData, header_image: result.url });
       } else {
         setContentData({ ...contentData, hero_image: result.url });
       }
+
+      // ✅ SUCCESS FEEDBACK
+      alert("✅ Image uploaded to cloud! Click 'SAVE CHANGES' at the top before leave.");
+      
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Image upload failed.");
+      alert("❌ Image upload failed. Please check your connection.");
     } finally {
       setUploading(false);
     }

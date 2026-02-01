@@ -64,8 +64,8 @@ export default function HeroSection() {
           <div className="absolute inset-0 bg-black/50" />
 
           {/* Content Container */}
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4">
-            <h1 className="text-white text-5xl md:text-7xl font-black uppercase mb-4 tracking-tight drop-shadow-2xl">
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 pt-20 md:pt-0">
+            <h1 className="text-white text-3xl md:text-7xl font-black uppercase mb-4 tracking-tight drop-shadow-2xl leading-tight">
               {slide.title}
             </h1>
             <p className="text-white text-xl md:text-2xl mb-12 font-light italic max-w-2xl">

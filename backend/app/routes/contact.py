@@ -49,6 +49,11 @@ def update_contact_info(
         raise HTTPException(status_code=500, detail="Database update failed")
 
 # --- FORM FIELDS ---
+
+@router.get("/fields", response_model=List[ContactFieldOut])
+def get_fields(db: Session = Depends(get_db)):
+    return db.query(ContactField).order_by(ContactField.id.asc()).all()
+
 @router.post("/fields", response_model=ContactFieldOut, status_code=status.HTTP_201_CREATED)
 def add_field(
     data: ContactFieldCreate, 

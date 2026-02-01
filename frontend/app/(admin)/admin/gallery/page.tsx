@@ -19,7 +19,6 @@ export default function AdminGalleryPage() {
   const [newImage, setNewImage] = useState<{file: File | null, desc: string}>({ file: null, desc: "" });
 
   const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
@@ -47,7 +46,7 @@ export default function AdminGalleryPage() {
     setLoading(true);
     
     const data = new FormData(); 
-    data.append("file", file); // 🔹 Use "file" consistently
+    data.append("file", file);
   
     try {
       const res = await fetch(`${apiUrl}/admin/about/upload-image`, {
@@ -57,6 +56,12 @@ export default function AdminGalleryPage() {
       });
       const result = await res.json();
       setMetaData({ ...metaData, header_image: result.url });
+      
+      // 🔔 Notification added here
+      alert("✅ Banner Image Uploaded! Click 'SAVE CHANGES' at the top to finalize the text and layout.");
+      
+    } catch (err) {
+      alert("❌ Upload failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,19 +72,21 @@ export default function AdminGalleryPage() {
     setLoading(true);
     
     const formData = new FormData();
-    formData.append("file", newImage.file); // 🔹 MUST BE "file" to match backend parameter
+    formData.append("file", newImage.file);
     if (newImage.desc) formData.append("description", newImage.desc);
   
     try {
       const res = await fetch(`${apiUrl}/admin/gallery/upload`, {
         method: "POST",
         headers: { 
-          Authorization: `Bearer ${token}` // 🛡️ Ensure token is sent
+          Authorization: `Bearer ${token}`
         },
         body: formData
       });
   
       if (res.ok) {
+        // 🔔 Notification added here
+        alert("✅ Photo Published to Live Gallery!");
         setNewImage({ file: null, desc: "" });
         fetchData();
       } else {
@@ -88,6 +95,7 @@ export default function AdminGalleryPage() {
       }
     } catch (err) {
       console.error(err);
+      alert("❌ Critical error during upload.");
     } finally {
       setLoading(false);
     }
@@ -96,25 +104,30 @@ export default function AdminGalleryPage() {
   const handleSaveMeta = async () => {
     setLoading(true);
     try {
-      await fetch(`${apiUrl}/admin/meta/gallery`, {
+      const res = await fetch(`${apiUrl}/admin/meta/gallery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(metaData),
       });
-      alert("Gallery Settings Updated!");
+      if (res.ok) {
+        alert("🎉 Gallery Header & Settings Updated Successfully!");
+      }
     } finally { setLoading(false); }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Permanently remove this photo?")) return;
-    await fetch(`${apiUrl}/admin/gallery/${id}`, {
+    const res = await fetch(`${apiUrl}/admin/gallery/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     });
-    fetchData();
+    if (res.ok) {
+      alert("🗑️ Photo removed from gallery.");
+      fetchData();
+    }
   };
 
-  if (fetching) return <div className="p-10 text-center animate-pulse italic font-black">Loading Gallery Assets...</div>;
+  if (fetching) return <div className="p-10 text-center animate-pulse italic font-black text-slate-900 uppercase">Synchronizing Gallery...</div>;
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white rounded-[2.5rem] shadow-sm border border-slate-100 space-y-12 mb-20">
@@ -166,7 +179,7 @@ export default function AdminGalleryPage() {
             )}
             <label className="w-full cursor-pointer">
                 <div className="flex items-center justify-center gap-2 py-3 bg-white rounded-xl shadow-sm border border-slate-100 group-hover:bg-slate-950 group-hover:text-white transition-all font-black italic text-xs uppercase">
-                    <Upload size={16} /> Replace Banner
+                    {loading ? <Loader2 className="animate-spin" size={14} /> : <Upload size={16} />} Replace Banner
                 </div>
                 <input type="file" className="hidden" onChange={handleBannerUpload} />
             </label>
@@ -245,7 +258,6 @@ export default function AdminGalleryPage() {
   );
 }
 
-// --- Internal Components (consistent with your other pages) ---
 const SectionHeader = ({ icon, title }: any) => (
   <div className="flex items-center gap-3 border-l-4 border-blue-600 pl-4">
     <div className="text-blue-600">{icon}</div>
@@ -256,6 +268,6 @@ const SectionHeader = ({ icon, title }: any) => (
 const AdminInput = ({ label, ...props }: any) => (
   <div className="flex flex-col gap-2">
     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{label}</label>
-    <input {...props} className="w-full border-b-2 border-slate-100 py-3 font-bold outline-none focus:border-blue-600 transition-all text-slate-900 bg-transparent" />
+    <input {...props} className="w-full border-b-2 border-slate-100 py-3 font-bold outline-none focus:border-blue-600 transition-all text-slate-900 bg-transparent text-sm" />
   </div>
 );

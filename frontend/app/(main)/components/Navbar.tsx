@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { WhatsAppMobileBtn } from "./WhatsAppFloating"
-import { Menu, X } from "lucide-react"
+import { Menu, Phone, X } from "lucide-react"
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -52,9 +52,16 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* MOBILE ONLY: WhatsApp Center */}
-        <div className="md:hidden flex-grow flex justify-center">
-          <WhatsAppMobileBtn />
+        {/* 🔹 MOBILE ONLY: WhatsApp Circle Icon (Minimized) */}
+        <div className="md:hidden flex items-center justify-center">
+          <a 
+            href="https://wa.me/yournumber" 
+            target="_blank" 
+            className="bg-green-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform active:scale-95"
+          >
+            {/* Using a custom SVG for WhatsApp icon or Lucide phone */}
+            <Phone size={18} fill="currentColor" />
+          </a>
         </div>
 
         {/* DESKTOP NAV */}

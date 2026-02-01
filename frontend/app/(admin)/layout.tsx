@@ -1,9 +1,9 @@
-"use client"; // Required for useState
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // 🔹 Import usePathname
 import AdminNavbar from "./components/AdminNavBar";
-// Import icons from a library like lucide-react (Standard in Next.js projects)
 import { 
   Menu, 
   LayoutDashboard, 
@@ -20,6 +20,7 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname(); // 🔹 Get current path
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -32,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* LOGO AREA */}
         <div className="p-4 h-20 flex items-center justify-between border-b border-gray-100">
           {!isCollapsed && (
-            <span className="font-bold text-xl text-black ml-2 transition-opacity">
+            <span className="font-bold text-xl text-black ml-2 transition-opacity italic tracking-tighter uppercase">
               ARP <span className="text-blue-600">MOTORS</span>
             </span>
           )}
@@ -45,60 +46,69 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* NAVIGATION LINKS */}
-        <nav className="p-3 space-y-2 flex-1 mt-4">
+        <nav className="p-3 space-y-1 flex-1 mt-4">
           <SidebarLink 
             href="/admin" 
             label="Dashboard" 
-            icon={<LayoutDashboard size={22} />} 
+            icon={<LayoutDashboard size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin"} // 🔹 Check if active
           />
           <SidebarLink 
             href="/admin/hero" 
             label="Banner Section" 
-            icon={<GalleryThumbnails size={22} />} 
+            icon={<GalleryThumbnails size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/hero"}
           />
           <SidebarLink 
             href="/admin/about" 
             label="About Section" 
-            icon={<Info size={22} />} 
+            icon={<Info size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/about"}
           />
           <SidebarLink 
             href="/admin/include" 
             label="What's Included" 
-            icon={<CheckCircle size={22} />} 
+            icon={<CheckCircle size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/include"}
           />
           <SidebarLink 
             href="/admin/bikes" 
             label="Bikes" 
-            icon={<Bike size={22} />} 
+            icon={<Bike size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname.startsWith("/admin/bikes")} // 🔹 Handles sub-routes
           />
           <SidebarLink 
             href="/admin/gallery" 
             label="Gallery" 
-            icon={<ImageIcon size={22} />} 
+            icon={<ImageIcon size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/gallery"}
           />
           <SidebarLink 
             href="/admin/contact" 
             label="Contact Info" 
-            icon={<Phone size={22} />} 
+            icon={<Phone size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/contact"}
           />
           <SidebarLink 
             href="/admin/footer" 
             label="Footer Info" 
-            icon={<ScanSearch size={22} />} 
+            icon={<ScanSearch size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/footer"}
           />
            <SidebarLink 
             href="/admin/chatbot" 
             label="Chat Bot" 
-            icon={<BotMessageSquare size={22} />} 
+            icon={<BotMessageSquare size={20} />} 
             collapsed={isCollapsed} 
+            active={pathname === "/admin/chatbot"}
           />
         </nav>
       </aside>
@@ -118,29 +128,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 }
 
-// Updated SidebarLink Component
+// 🔹 Updated SidebarLink Component with Active State Logic
 function SidebarLink({ 
   href, 
   label, 
   icon, 
-  collapsed 
+  collapsed,
+  active 
 }: { 
   href: string; 
   label: string; 
   icon: React.ReactNode; 
-  collapsed: boolean 
+  collapsed: boolean;
+  active: boolean; 
 }) {
   return (
     <Link 
       href={href} 
-      className={`flex items-center gap-4 px-3 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all group overflow-hidden`}
-      title={collapsed ? label : ""} // Show tooltip when collapsed
+      className={`
+        flex items-center gap-4 px-3 py-3 rounded-xl transition-all group overflow-hidden relative
+        ${active 
+          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-bold" 
+          : "text-gray-500 hover:bg-slate-50 hover:text-blue-600"
+        }
+      `}
+      title={collapsed ? label : ""}
     >
-      <div className="min-w-[24px] flex justify-center">
+      {/* Active Indicator Bar (Vertical) */}
+      {active && !collapsed && (
+        <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-r-full" />
+      )}
+
+      <div className={`min-w-[24px] flex justify-center transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`}>
         {icon}
       </div>
       
-      <span className={`font-medium whitespace-nowrap transition-opacity duration-200 ${
+      <span className={`text-[13px] uppercase tracking-tight whitespace-nowrap transition-all duration-200 ${
         collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
       }`}>
         {label}

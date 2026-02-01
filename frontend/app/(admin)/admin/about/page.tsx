@@ -35,6 +35,7 @@ export default function AdminAboutPage() {
         fetch(`${apiUrl}/admin/meta/about`),
         fetch(`${apiUrl}/admin/about`)
       ]);
+      
       if (mRes.ok) setMetaData(await mRes.json());
       if (cRes.ok) {
         const content = await cRes.json();

@@ -10,7 +10,7 @@ from jose import JWTError, jwt
 # Existing JWT Settings
 SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key-change-this")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 365 * 60 * 24  # 1 year
 
 # --- AUTH CONFIGURATION ---
 # This was missing! It tells FastAPI where to look for the token.
@@ -58,8 +58,8 @@ def upload_image_to_cloud(file):
 const handleUnauthorized = () => {
   localStorage.removeItem("admin_token");
   window.location.href = "/login"; // Force redirect
-};
-  
+};  
+
 # --- Security Guard Function ---
 async def get_current_admin(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(

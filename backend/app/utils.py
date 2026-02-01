@@ -54,7 +54,12 @@ def upload_image_to_cloud(file):
     except Exception as e:
         print(f"Cloudinary Upload Error: {e}")
         return None
-    
+  
+const handleUnauthorized = () => {
+  localStorage.removeItem("admin_token");
+  window.location.href = "/login"; // Force redirect
+};
+  
 # --- Security Guard Function ---
 async def get_current_admin(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(

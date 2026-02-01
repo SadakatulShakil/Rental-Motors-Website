@@ -66,7 +66,7 @@ export default function AdminLogin() {
       {/* Dynamic Overlay: Gradient from deep slate to transparent */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-950/80 to-slate-900/40" />
 
-      <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in duration-700">
+      <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in pt-20 duration-700">
         {/* Glassmorphism Card */}
         <div className="bg-white/10 backdrop-blur-2xl rounded-[3rem] shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] overflow-hidden p-10 border border-white/20">
           

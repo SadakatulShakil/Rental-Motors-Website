@@ -13,7 +13,7 @@ def get_footer_settings(db: Session = Depends(get_db)):
     settings = db.query(Footer).first()
     if not settings:
         # Create default entry if none exists
-        new_settings = Footer(site_title="SKA MOTORS")
+        new_settings = Footer(site_title="ARP MOTORS")
         db.add(new_settings)
         db.commit()
         db.refresh(new_settings)
@@ -21,20 +21,22 @@ def get_footer_settings(db: Session = Depends(get_db)):
     return settings
 
 @router.put("/footer/upload-logo")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_footer_logo(file: UploadFile = File(...)):
     try:
-        # 2. Upload directly to Cloudinary
-        upload_result = cloudinary.uploader.upload(
-            file.file,
-            folder="ska_motors/branding",
-            public_id=f"logo_{file.filename.split('.')[0]}"
-        )
+        # 1. Use your utility function (ensure it's imported)
+        # Assuming upload_image_to_cloud is in your utils
+        cloud_url = upload_image_to_cloud(file.file)
         
-        # 3. Return the secure Cloudinary URL
-        return {"logo_url": upload_result.get("secure_url")} 
+        # 2. Check if the upload was successful
+        if not cloud_url:
+            raise HTTPException(status_code=500, detail="Failed to get URL from Cloudinary")
         
+        # 3. Return the key "url" to match your other upload routes
+        return {"url": cloud_url}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Cloudinary Upload failed: {str(e)}")
+        print(f"Footer Logo Upload Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
     
 
 @router.put("/footer", response_model=FooterSettingsRead)

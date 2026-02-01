@@ -47,8 +47,7 @@ export default function FooterAdmin() {
     try {
       const res = await fetch(`${apiUrl}/admin/footer/upload-logo`, {
         method: "PUT",
-        headers: {
-          // the browser does it automatically with the boundary.
+        headers: { 
           "Authorization": `Bearer ${localStorage.getItem("admin_token")}` 
         },
         body: formData,
@@ -58,16 +57,18 @@ export default function FooterAdmin() {
   
       const data = await res.json();
       
-      // This triggers the re-render so the logo shows up in the preview box
-      setSettings((prev: any) => ({ 
-        ...prev, 
-        logo_url: data.logo_url 
-      }));
-  
-      alert("✅ Logo uploaded! Preview updated. Now click 'SAVE CHANGES' to finish.");
+      // 🔹 UPDATED: We now look for data.url to match the backend change
+      if (data.url) {
+        setSettings((prev: any) => ({ 
+          ...prev, 
+          logo_url: data.url // We update logo_url in state using the 'url' from server
+        }));
+        alert("✅ Logo uploaded! Click 'SAVE CHANGES' to persist.");
+      }
+      
     } catch (err) {
+      alert("❌ Upload failed");
       console.error(err);
-      alert("❌ Upload failed. Check console for details.");
     } finally {
       setLoading(false);
     }

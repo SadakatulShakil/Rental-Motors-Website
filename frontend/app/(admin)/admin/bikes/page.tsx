@@ -35,6 +35,11 @@ export default function AdminBikesPage() {
   const [formData, setFormData] = useState(initialForm)
 
   useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (isAdding) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isAdding]);
 
   const fetchData = async () => {
     try {
@@ -158,16 +163,38 @@ export default function AdminBikesPage() {
         </div>
       )}
 
-{/* SECTION 2: ADD/EDIT FORM */}
-{isAdding && (
+  {/* SECTION 2: ADD/EDIT FORM */}
+    {isAdding && (
         <form onSubmit={handleSaveBike} className="space-y-10 bg-slate-50/50 p-8 rounded-[3rem] border border-slate-100 animate-in fade-in slide-in-from-top-4">
-          <div className="flex items-center justify-between">
-            <SectionHeader icon={<Bike size={18}/>} title={editSlug ? "Edit Vehicle Details" : "New Vehicle Entry"} />
-            <div className="flex gap-4">
-               {uploading && <Loader2 className="animate-spin text-blue-600" />}
-               <button type="submit" className="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black italic uppercase text-xs shadow-lg shadow-blue-600/20">Confirm Save</button>
-            </div>
-          </div>
+<div className="flex items-center justify-between">
+        <SectionHeader icon={<Bike size={18}/>} title={editSlug ? "Edit Vehicle Details" : "New Vehicle Entry"} />
+        
+        <div className="flex items-center gap-3">
+          {uploading && <Loader2 className="animate-spin text-blue-600 mr-2" />}
+          
+          {/* 🔹 CANCEL BUTTON: Resets state and returns to list */}
+          <button 
+            type="button" 
+            onClick={() => {
+              setIsAdding(false);
+              setEditSlug(null);
+              setFormData(initialForm);
+            }}
+            className="bg-white text-slate-500 border border-slate-200 px-6 py-3 rounded-2xl font-black italic uppercase text-[10px] hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all flex items-center gap-2"
+          >
+            <X size={14} /> Cancel
+          </button>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="bg-blue-600 text-white px-10 py-3 rounded-2xl font-black italic uppercase text-[10px] shadow-lg shadow-blue-600/20 hover:bg-slate-900 transition-all flex items-center gap-2"
+          >
+            {loading ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} 
+            {editSlug ? "Update Vehicle" : "Confirm Save"}
+          </button>
+        </div>
+      </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2 space-y-6">

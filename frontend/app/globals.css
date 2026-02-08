@@ -34,3 +34,28 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+@layer base {
+  html {
+    /* Prevents the 'bouncy' scroll from showing white space */
+    background-color: #ffffff;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    /* Add padding at bottom so content isn't hidden by the MobileNav */
+    padding-bottom: 5rem; 
+  }
+
+  /* Desktop overrides: Remove mobile padding on large screens */
+  @media (min-width: 768px) {
+    body { padding-bottom: 0; }
+  }
+}
+
+/* Hide scrollbars for the native app look */
+::-webkit-scrollbar {
+  display: none;
+}

@@ -11,7 +11,7 @@ export default function Home() {
       <HeroSection />
       <AboutSection />
       <MotorcycleList limit={4} showViewMore />
-      <IncludedSection />
+      <IncludedSection limit={4} showViewMore />
       <GallerySection limit={4} showViewMore />
       <ContactSection />
     </main>

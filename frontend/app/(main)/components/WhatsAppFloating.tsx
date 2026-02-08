@@ -3,46 +3,10 @@ import React, { useEffect, useState } from 'react'
 
 export default function WhatsAppFloating() {
   const [contactInfo, setContactInfo] = useState<any>(null)
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
-    fetch(`${apiUrl}/admin/contact/info"`)
-      .then(res => res.json())
-      .then(data => setContactInfo(data))
-      .catch(err => console.error("WhatsApp Fetch Error:", err))
-  }, [])
-
-  // Fallback to your hardcoded number if API isn't ready
-  const rawNumber = contactInfo?.phone || "447593799975"
-  const cleanNumber = rawNumber.replace(/\D/g, '')
-  
-  const message = "Hi! I'm interested in renting a bike. Can you help me?"
-  const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
-
-  return (
-    <div className="hidden sm:flex fixed bottom-6 right-6 z-[9999] flex-col items-end gap-3 group">
-      <span className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-2xl pointer-events-none uppercase tracking-tighter italic">
-        Need Help? Chat Now
-      </span>
-
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative flex items-center justify-center w-16 h-16 bg-[#25D366] rounded-full shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:shadow-[0_0_30px_rgba(37,211,102,0.6)] hover:scale-110 active:scale-95 transition-all duration-300"
-      >
-        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-40"></span>
-        <WhatsAppIcon />
-      </a>
-    </div>
-  )
-}
-
-export function WhatsAppMobileBtn() {
-  const [contactInfo, setContactInfo] = useState<any>(null)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  useEffect(() => {
+    // Fixed the typo in the URL (removed extra quote)
     fetch(`${apiUrl}/admin/contact/info`)
       .then(res => res.json())
       .then(data => setContactInfo(data))
@@ -55,22 +19,52 @@ export function WhatsAppMobileBtn() {
   const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`
 
   return (
+    /* 🔹 MOBILE ONLY: This replaces the chatbot on mobile view */
+    /* Positioned at bottom-24 to stay clear of the Mobile Navigation Bar */
+    <div className="md:hidden fixed bottom-24 right-6 z-[9999] flex flex-col items-end gap-3">
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-2xl active:scale-90 transition-all duration-300"
+      >
+        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-25"></span>
+        <WhatsAppIcon className="w-8 h-8 fill-white relative z-10" />
+      </a>
+    </div>
+  )
+}
+
+export function WhatsAppMobileBtn() {
+  const [contactInfo, setContactInfo] = useState<any>(null)
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  useEffect(() => {
+    fetch(`${apiUrl}/admin/contact/info`)
+      .then(res => res.json())
+      .then(data => setContactInfo(data))
+      .catch(err => console.error("WhatsApp Fetch Error:", err))
+  }, [])
+
+  const rawNumber = contactInfo?.phone || "447593799975"
+  const cleanNumber = rawNumber.replace(/\D/g, '')
+  const whatsappUrl = `https://wa.me/${cleanNumber}`
+
+  return (
+    /* 🔹 DESKTOP ONLY: This shows in the Top Navbar */
     <a 
       href={whatsappUrl} 
       target="_blank" 
       rel="noopener noreferrer"
-      className="flex items-center gap-1.5 bg-[#25D366] px-3 py-1.5 rounded-full shadow-lg active:scale-95 transition-all"
+      className="hidden md:flex items-center gap-3 bg-[#25D366] pl-2 pr-5 py-1.5 rounded-full shadow-md hover:shadow-lg hover:bg-[#20ba5a] transition-all group"
     >
-      <div className="relative flex items-center justify-center">
-        <span className="absolute inset-0 rounded-full bg-white animate-ping opacity-60"></span>
-        <WhatsAppIcon className="w-5 h-5 fill-white relative z-10" />
+      <div className="bg-white p-1.5 rounded-full shadow-sm group-hover:rotate-12 transition-transform">
+        <WhatsAppIcon className="w-4 h-4 fill-[#25D366]" />
       </div>
-      <span className="text-[10px] font-black uppercase italic text-white animate-pulse tracking-tight text-center leading-none">
-        Emergency Contact
-        <span className="block mt-0.5 text-[12px] tracking-normal not-italic">
-          {rawNumber}
-        </span>
-      </span>
+      <div className="flex flex-col">
+        <span className="text-[9px] font-black uppercase text-white/90 leading-none tracking-widest">Chat with us</span>
+        <span className="text-[12px] font-bold text-white leading-tight">{rawNumber}</span>
+      </div>
     </a>
   )
 }

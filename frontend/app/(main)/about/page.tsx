@@ -4,8 +4,12 @@ import AboutHeader from "./AboutHeader"
 export default function AboutPage() {
   return (
     <main>
-      <AboutHeader/>
-      <AboutSection />
+      <div className="hidden md:block">
+        <AboutHeader/>
+      </div>
+      <div className="pt-20 md:pt-0">
+        <AboutSection />
+      </div>
     </main>
   )
 }

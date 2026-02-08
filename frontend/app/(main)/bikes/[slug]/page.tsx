@@ -85,35 +85,48 @@ export default async function BikeDetailPage({ params }: { params: Promise<{ slu
           </p>
         </div>
 
-        {/* CHARGE TABLE - Modernized with better contrast */}
-        <section className="mt-12">
-          <div className="flex justify-between items-end mb-6">
-             <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950">Rental Breakdown</h2>
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">All prices in GBP (£)</p>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Duration</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Charge</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Limit</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">Extra KM</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {bike.rental_charges?.map((row: any, i: number) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-6 py-4 font-bold text-slate-900 text-sm">{row.duration}</td>
-                    <td className="px-6 py-4 font-black text-blue-600 text-lg italic">{row.charge}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-500">{row.max_km}</td>
-                    <td className="px-6 py-4 text-xs text-slate-400 font-medium italic group-hover:text-slate-950 transition-colors">{row.extra_charge}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+{/* CHARGE TABLE - Modernized with Mobile Scroll Support */}
+<section className="mt-12">
+  <div className="flex justify-between items-end mb-6">
+     <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950">Rental Breakdown</h2>
+     <p className="hidden sm:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">All prices in GBP (£)</p>
+  </div>
+  
+  <div className="relative group">
+    {/* 🔹 Added Scroll Hint for Mobile */}
+    <div className="md:hidden absolute -top-4 right-0 flex items-center gap-1 text-[8px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
+      Swipe Right <Zap size={8}/>
+    </div>
+
+    <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm scrollbar-hide">
+      <table className="w-full text-left border-collapse min-w-[500px]">
+        <thead>
+          <tr className="bg-slate-50 border-b border-slate-200">
+            <th className="px-4 md:px-6 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Duration</th>
+            <th className="px-4 md:px-6 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Charge</th>
+            <th className="px-4 md:px-6 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Limit</th>
+            <th className="px-4 md:px-6 py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">Extra KM</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 bg-white">
+          {bike.rental_charges?.map((row: any, i: number) => (
+            <tr key={i} className="hover:bg-slate-50 transition-colors group">
+              <td className="px-4 md:px-6 py-4 font-bold text-slate-900 text-xs md:text-sm">{row.duration}</td>
+              <td className="px-4 md:px-6 py-4 font-black text-blue-600 text-base md:text-lg italic">{row.charge}</td>
+              <td className="px-4 md:px-6 py-4 text-xs md:text-sm font-bold text-slate-500">{row.max_km}</td>
+              <td className="px-4 md:px-6 py-4 text-[10px] md:text-xs text-slate-400 font-medium italic group-hover:text-slate-950 transition-colors whitespace-nowrap">
+                {row.extra_charge}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    
+    {/* 🔹 Subtle gradient indicating more content on mobile */}
+    <div className="md:hidden absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+  </div>
+</section>
       </div>
     </section>
   );

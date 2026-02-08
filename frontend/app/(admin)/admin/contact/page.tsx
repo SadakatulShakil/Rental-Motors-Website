@@ -145,6 +145,12 @@ export default function AdminContactPage() {
             <label className="text-[10px] font-black uppercase text-slate-400">Banner Description</label>
             <textarea value={metaData.header_description} onChange={(e:any) => setMetaData({...metaData, header_description: e.target.value})} rows={2} className="w-full border-2 border-slate-100 rounded-2xl p-4 font-bold outline-none focus:border-blue-600 transition-all resize-none shadow-sm" />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <AdminInput label="Body Title" value={metaData.page_title} onChange={(e:any) => setMetaData({...metaData, page_title: e.target.value})} />
+            <AdminInput label="Body Subtitle" value={metaData.page_subtitle} onChange={(e:any) => setMetaData({...metaData, page_subtitle: e.target.value})} />
+          </div>
+          
         </div>
         <div className="relative group">
           {metaData.header_image ? <img src={metaData.header_image} className="h-44 w-full object-cover rounded-2xl border-4 border-slate-50" /> : <div className="h-44 w-full bg-slate-100 rounded-2xl" />}

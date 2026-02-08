@@ -3,19 +3,19 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { WhatsAppMobileBtn } from "./WhatsAppFloating"
-import { Menu, Phone, X } from "lucide-react"
+import { Menu, MessageSquare, X } from "lucide-react" // 🔹 Added MessageSquare
+import Chatbot from "./ChatBot"
 
 export default function Navbar() {
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [logoUrl, setLogoUrl] = useState<string | null>(null) // 🔹 State for Logo
+  const [isChatOpen, setIsChatOpen] = useState(false) // 🔹 State to trigger chatbot
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   const isActive = (path: string) => pathname === path
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
-    // Fetch settings to get the dynamic logo_url
     fetch(`${apiUrl}/admin/footer`)
       .then(res => res.json())
       .then(data => setLogoUrl(data.logo_url))
@@ -42,7 +42,7 @@ export default function Navbar() {
             <img 
               src={logoUrl} 
               alt="Logo" 
-              className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+              className="h-9 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
             />
           ) : (
             <div className="h-10 w-10 bg-slate-100 animate-pulse rounded-lg" />
@@ -51,18 +51,6 @@ export default function Navbar() {
             ARP <span className="text-blue-600"> MOTORS</span>
           </div>
         </Link>
-
-        {/* 🔹 MOBILE ONLY: WhatsApp Circle Icon (Minimized) */}
-        <div className="md:hidden flex items-center justify-center">
-          <a 
-            href="https://wa.me/yournumber" 
-            target="_blank" 
-            className="bg-green-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform active:scale-95"
-          >
-            {/* Using a custom SVG for WhatsApp icon or Lucide phone */}
-            <Phone size={18} fill="currentColor" />
-          </a>
-        </div>
 
         {/* DESKTOP NAV */}
         <div className="hidden md:flex items-center space-x-1">
